@@ -99,6 +99,7 @@ def test_pagina_do_dashboard_existe():
     html = (Path(__file__).resolve().parent.parent / "docs" / "index.html").read_text(encoding="utf-8")
     assert 'fetch("dados.json"' in html
     assert "<script src=" not in html            # sem dependências externas
+    assert 'id="destaques"' in html and "function destaques()" in html   # cartões de destaque
 
 
 def test_teste_as_cegas(resultado_simulado):

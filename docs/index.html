@@ -171,6 +171,21 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .detalhe-uf { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-size: 13.5px; }
 .detalhe-uf h3 { font-size: 15px; margin: 0 0 6px; }
 .detalhe-uf p { margin: 3px 0; color: var(--ink-2); }
+/* Destaques */
+.destaques-wrap { margin: 0 0 20px; }
+.destaques-wrap h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+.destaques { display: grid; grid-auto-flow: column; grid-auto-columns: 82%; gap: 10px; overflow-x: auto;
+  scroll-snap-type: x mandatory; padding: 2px 2px 8px; margin: 0 -2px; -webkit-overflow-scrolling: touch; }
+@media (min-width: 820px) { .destaques { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); overflow: visible; } }
+@media (min-width: 1100px) { .destaques { grid-template-columns: repeat(4, 1fr); } }
+.achado { scroll-snap-align: start; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.achado::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--tom, var(--accent)); }
+.achado .rot { font-size: 12px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.achado .num-grande { font-size: 30px; font-weight: 750; line-height: 1.1; }
+.achado p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); flex: 1; }
+.achado button { align-self: flex-start; font: inherit; font-size: 13.5px; font-weight: 650; color: var(--accent);
+  background: none; border: 0; padding: 4px 0; cursor: pointer; }
 .ficha { border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .ficha .grande { font-size: 40px; font-weight: 700; line-height: 1.05; }
 .ficha .grande small { font-size: 15px; font-weight: 600; color: var(--ink-2); margin-left: 4px; }
@@ -255,6 +270,11 @@ header.topo { position: relative; }
   </header>
 
   <section class="kpis" id="kpis" aria-label="Indicadores principais"></section>
+
+  <section class="destaques-wrap" id="destaques-wrap" hidden aria-label="Destaques">
+    <h2>O que os dados revelam</h2>
+    <div class="destaques" id="destaques"></div>
+  </section>
 
   <div class="filtro">
     <div class="linha">
@@ -900,13 +920,74 @@ header.topo { position: relative; }
       D.impacto.map(r => `<tr>${usar.map(c => `<td class="num">${c[2](r[c[0]])}</td>`).join("")}</tr>`).join("") + "</tbody>";
   }
 
+  // ---------- destaques (gerados a partir dos dados, mudam sozinhos a cada atualização) ----------
+  function irPara(id) { const el = $(id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  function destaques() {
+    const wrap = $("destaques-wrap");
+    if (sel || !D) { wrap.hidden = true; return; }
+    const cards = [];
+    const R = D.regioes || {};
+    // 1) Regiões sem nenhuma obra de concessão federal nas bases
+    const todas = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"];
+    const comDados = new Set((R.por_regiao || []).filter(r => r.metas_encerradas > 0 || r.obras_ano_atual > 0).map(r => r.regiao));
+    const vazias = todas.filter(g => !comDados.has(g));
+    if (vazias.length && (R.por_regiao || []).length) {
+      cards.push({ tom: "var(--muted)", rot: "Vazio no mapa", num: vazias.join(", "),
+        txt: `Nenhuma obra de concessão rodoviária federal nas bases da ANTT. Sem concessão, não há investimento previsto em contrato, e as obras dependem do orçamento público.`,
+        acao: "Ver o mapa", fn: () => { indMapa = "hist"; mapa(); irPara("card-mapa"); } });
+    }
+    // 2) Estado cujo número é, na prática, de uma concessionária só
+    const pc = R.por_concessionaria || {};
+    let dom = null;
+    for (const u of (R.por_uf || [])) {
+      if (!(u.metas_encerradas >= 30) || u.taxa_atraso_pct == null) continue;
+      const partes = Object.entries(pc).map(([c, v]) => [c, ((v.por_uf || []).find(x => x.uf === u.uf) || {}).metas_encerradas || 0])
+        .filter(p => p[1] > 0).sort((a, b) => b[1] - a[1]);
+      if (partes.length < 2) continue;
+      const peso = partes[0][1] / u.metas_encerradas * 100;
+      if (peso >= 60 && (!dom || u.taxa_atraso_pct > dom.u.taxa_atraso_pct)) dom = { u, c: partes[0][0], peso };
+    }
+    if (dom) {
+      cards.push({ tom: "var(--critical)", rot: `${dom.u.nome}`, num: pct(dom.u.taxa_atraso_pct),
+        txt: `das metas de obras ficaram abaixo do planejado. Mas ${pct(dom.peso)} delas são de uma só concessionária, a ${esc(dom.c)}. O problema está no contrato, não no estado.`,
+        acao: `Ver ${esc(dom.c)}`, fn: () => selecionar(dom.c) });
+    }
+    // 3) Maior investimento declarado sem acompanhamento de obra
+    const semInfo = (D.qualidade || []).filter(q => q.excluido_das_metricas && q.investimento_rs)
+      .sort((a, b) => b.investimento_rs - a.investimento_rs)[0];
+    if (semInfo) {
+      cards.push({ tom: "var(--warning)", rot: `${esc(semInfo.concessionaria)} · ${semInfo.ano}`, num: reais(semInfo.investimento_rs),
+        txt: `declarados em investimento, ${semInfo.obras_acompanhadas ? "com execução zerada em todas as obras informadas" : `sem acompanhamento enviado de nenhuma das ${nf(semInfo.obras_planejadas)} obras planejadas`}. Provável falta de preenchimento, por isso o ano ficou fora do cálculo.`,
+        acao: "Ver a checagem", fn: () => selecionar(semInfo.concessionaria) });
+    }
+    // 4) O modelo funciona? (teste às cegas)
+    const b = D.backtest;
+    if (b && b.faixas) {
+      const baixo = b.faixas.find(f => f.faixa === "Baixo");
+      const outras = b.faixas.filter(f => f.faixa !== "Baixo");
+      const n = outras.reduce((a, f) => a + f.obras, 0), at = outras.reduce((a, f) => a + f.atrasaram, 0);
+      if (baixo && baixo.pct_atrasaram > 0 && n) {
+        const vezes = (at / n * 100) / baixo.pct_atrasaram;
+        cards.push({ tom: "var(--accent)", rot: `Teste às cegas · ${b.ano}`, num: `${nf(vezes, 1)}×`,
+          txt: `mais atrasos nas obras que o modelo apontou como risco médio ou alto do que nas de risco baixo, sem ele ver o resultado.`,
+          acao: "Ver o teste", fn: () => irPara("card-prova") });
+      }
+    }
+    if (!cards.length) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    $("destaques").innerHTML = cards.map((c, i) => `<article class="achado" style="--tom:${c.tom}">
+      <span class="rot">${c.rot}</span><span class="num-grande num">${c.num}</span><p>${c.txt}</p>
+      <button type="button" data-i="${i}">${c.acao} →</button></article>`).join("");
+    $("destaques").querySelectorAll("button").forEach(bt => bt.onclick = () => cards[+bt.dataset.i].fn());
+  }
+
   // ---------- filtro ----------
   function selecionar(c) {
     sel = c; limiteObras = 12;
     $("sel-conc").value = c; $("limpar").hidden = !c;
     const url = new URL(location); c ? url.searchParams.set("c", c) : url.searchParams.delete("c");
     history.replaceState(null, "", url);
-    kpis(); risco(); avisoRisco(); mapa(); qualidade(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
+    kpis(); destaques(); risco(); avisoRisco(); mapa(); qualidade(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
     if (c) document.querySelector(".kpis").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
