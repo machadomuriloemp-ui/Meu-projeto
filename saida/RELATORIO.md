@@ -1,6 +1,6 @@
 # Cumprimento do planejado — concessões rodoviárias (ANTT)
 
-_Gerado em 26/09/2026 13:15. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
+_Gerado em 26/09/2026 13:33. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
 
 ## Resumo
 
@@ -48,19 +48,16 @@ Probabilidade de a concessionária executar menos de 90% do que planejou para o 
 
 Quando a concessionária declara investimento no ano mas não informa execução física das obras, o mais provável é falta de preenchimento. Esses anos ficam fora do cálculo de atraso e do modelo. A base de investimentos é anual e por concessionária.
 
-- **ECOVIAS CAPIXABA · 2025** — A ECOVIAS CAPIXABA não aparece com esse nome na base de investimentos da ANTT; não foi possível comparar.
 - **ECOVIAS DO ARAGUAIA · 2025** — Em 2025, a ECOVIAS DO ARAGUAIA declarou R$ 353,5 mi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 42 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 - **ECOVIAS DO CERRADO · 2024** — Em 2024, a ECOVIAS DO CERRADO declarou R$ 362,6 mi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 118 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 - **ECOVIAS DO CERRADO · 2025** — Em 2025, a ECOVIAS DO CERRADO declarou R$ 240,5 mi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 132 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 - **ECOVIAS PONTE · 2024** — Em 2024, a ECOVIAS PONTE declarou R$ 64,3 mi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 1 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 - **ECOVIAS PONTE · 2025** — Em 2025, a ECOVIAS PONTE declarou R$ 49,7 mi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 1 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 - **ECOVIAS RIO MINAS · 2025** — Em 2025, a ECOVIAS RIO MINAS declarou R$ 1,49 bi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 537 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
-- **MOTIVA PARANÁ · 2025** — A MOTIVA PARANÁ não aparece com esse nome na base de investimentos da ANTT; não foi possível comparar.
-- **NOVA ROTA DO OESTE · 2025** — A NOVA ROTA DO OESTE não aparece com esse nome na base de investimentos da ANTT; não foi possível comparar.
-- **PANTANAL · 2025** — A PANTANAL não aparece com esse nome na base de investimentos da ANTT; não foi possível comparar.
+- **NOVA ROTA DO OESTE · 2025** — Em 2025, a NOVA ROTA DO OESTE declarou R$ 2,03 bi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 3 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 - **VIA COSTEIRA · 2025** — Em 2025, a VIA COSTEIRA declarou R$ 396,4 mi de investimento, mas não enviou o acompanhamento de execução de nenhuma das 358 obras planejadas. Isso indica falta de preenchimento, não necessariamente obra parada. Esse ano não entra no cálculo de atraso.
 
-_Sem correspondência na base de investimentos: AUTOPISTA FERNÃO DIAS, AUTOPISTA REGIS BITTENCOURT, CCR PONTE, CONCEBRA, CONCEPA, CONCER, CRO, CRT, ECOVIAS 101, ECOVIAS SUL, MGO, MSVIA, NOVADUTRA, PR VIAS, RODOVIA DO AÇO, TRANSBRASILIANA, VIA 040, VIA BAHIA, VIABRASIL._
+_Sem correspondência na base de investimentos: AUTOPISTA FERNÃO DIAS, AUTOPISTA REGIS BITTENCOURT, CCR PONTE, CONCEBRA, CONCEPA, CONCER, CRT, ECOVIAS SUL, MGO, NOVADUTRA, RODOVIA DO AÇO, TRANSBRASILIANA, VIA 040, VIA BAHIA, VIABRASIL._
 
 ### O modelo acerta? Teste às cegas em 2025
 
