@@ -1,6 +1,6 @@
 # Cumprimento do planejado — concessões rodoviárias (ANTT)
 
-_Gerado em 26/09/2026 11:12. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
+_Gerado em 26/09/2026 11:19. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
 
 ## Resumo
 
@@ -46,7 +46,7 @@ Probabilidade de a concessionária executar menos de 90% do que planejou para o 
 
 ### O modelo acerta? Teste às cegas em 2025
 
-Treinado só com anos anteriores a 2025 e sem ver o resultado, o modelo acertou **68%** das 370 obras e detectou **60 dos 134** atrasos que aconteceram.
+Treinado só com anos anteriores a 2025 e sem ver o resultado, o modelo previu 370 obras. A tabela compara a faixa de risco prevista com o que realmente aconteceu. Ele detectou 60 dos 134 atrasos.
 
 | Previsão do modelo | Obras | Realmente atrasaram | Modelo esperava |
 |---|---|---|---|
@@ -56,20 +56,20 @@ Treinado só com anos anteriores a 2025 e sem ver o resultado, o modelo acertou 
 
 ### O que deve ficar para 2027
 
-| Concessionária | Obras que devem ir para 2027 | Obras no plano | Km |
-|---|---|---|---|
-| ECOVIAS RIO MINAS | 83 | 164 | 451,5 |
-| VIA ARAUCÁRIA | 31 | 75 | 27,0 |
-| VIA SUL | 30 | 56 | 78,6 |
-| NOVA 364 | 20 | 40 | 1.250,5 |
-| LITORAL PIONEIRO | 18 | 29 | 45,2 |
-| ECOVIAS DO ARAGUAIA | 12 | 42 | 20,1 |
-| ECOVIAS DO CERRADO | 11 | 19 | 77,2 |
-| ECOVIAS MINAS GOIÁS | 9 | 13 | 0,5 |
-| NOVA 381 | 6 | 12 | 0,0 |
-| MOTIVA MINAS SP | 6 | 16 | 0,3 |
-| VIA CAMPO | 5 | 25 | 0,0 |
-| EPR IGUAÇU | 5 | 9 | 0,0 |
+| Concessionária | Obras que devem ir para 2027 | Obras no plano |
+|---|---|---|
+| ECOVIAS RIO MINAS | 83 | 164 |
+| VIA ARAUCÁRIA | 31 | 75 |
+| VIA SUL | 30 | 56 |
+| NOVA 364 | 20 | 40 |
+| LITORAL PIONEIRO | 18 | 29 |
+| ECOVIAS DO ARAGUAIA | 12 | 42 |
+| ECOVIAS DO CERRADO | 11 | 19 |
+| ECOVIAS MINAS GOIÁS | 9 | 13 |
+| NOVA 381 | 6 | 12 |
+| MOTIVA MINAS SP | 6 | 16 |
+| VIA CAMPO | 5 | 25 |
+| EPR IGUAÇU | 5 | 9 |
 
 ## 2. Histórico e tendência mês a mês
 
@@ -271,8 +271,8 @@ Déficit = % previsto − % executado. Km e R$ = déficit aplicado à extensão 
 | Concessionária | Obra | Chance de atraso | Motivos prováveis |
 |---|---|---|---|
 | NOVA 381 | C.Estabilização de Taludes da BR-381/MG (BR-381/MG, km 294,8) | 96% | Desapropriação pendente; Projeto executivo não concluído; Meta anual pequena (obra em fase inicial/final) |
-| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
 | ECOVIAS DO CERRADO | Reforço e Alargamento de OAE, Ponte Ribeirão dos Pat... (BR-365/MG, km 847,8) — 2 itens | 94% | Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano |
+| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
 | NOVA 381 | Contrução de UOPs da PRF (BR-381/MG, km 217,5) | 92% | Baixa execução no ano até agora; Tipo de obra que costuma atrasar; Prazo previsto curto |
 | ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) — 10 itens | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
 | ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Rio Do... (BR-364/GO, km 113,2) — 2 itens | 92% | Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano; Prazo previsto curto |
