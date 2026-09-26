@@ -178,7 +178,18 @@ def _faixa(p: float) -> str:
     return config.FAIXAS_RISCO[-1][1]
 
 
-def risco_concessionarias(previsoes: pd.DataFrame, obras: pd.DataFrame) -> pd.DataFrame:
+def ano_referencia(anos: pd.Series, hoje: pd.Timestamp | None = None) -> int:
+    """Ano a avaliar: o ano atual, se houver plano para ele; senão o mais recente até hoje."""
+    ano_atual = (pd.Timestamp.today() if hoje is None else pd.Timestamp(hoje)).year
+    anos = sorted(int(a) for a in anos.dropna().unique())
+    if ano_atual in anos:
+        return ano_atual
+    passados = [a for a in anos if a <= ano_atual]
+    return passados[-1] if passados else anos[0]
+
+
+def risco_concessionarias(previsoes: pd.DataFrame, obras: pd.DataFrame,
+                          hoje: pd.Timestamp | None = None) -> pd.DataFrame:
     """Probabilidade de cada concessionária NÃO cumprir o plano do ano.
 
     Simulação de Monte Carlo: cada obra atrasa com sua probabilidade prevista;
@@ -194,7 +205,7 @@ def risco_concessionarias(previsoes: pd.DataFrame, obras: pd.DataFrame) -> pd.Da
 
     linhas = []
     for conc, g in previsoes.groupby("concessionaria"):
-        ano = g["ano"].min()  # ano corrente primeiro; anos futuros ficam para depois
+        ano = ano_referencia(g["ano"], hoje)
         g = g[g["ano"] == ano]
         p = g["prob_atraso"].clip(1e-4, 1 - 1e-4).to_numpy()
         prev = g["previsto_anual"].to_numpy()

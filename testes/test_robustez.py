@@ -93,3 +93,12 @@ def test_tendencia_nao_e_distorcida_por_mes_extremo():
     r = tendencia(serie).iloc[0]
     assert r["tendencia"] == "Estável"
     assert abs(r["inclinacao_pp_ano"]) < 1
+
+
+def test_ano_de_referencia_do_ranking():
+    """O ranking deve avaliar o ano atual; um ano passado só entra se não houver o atual."""
+    import pandas as pd
+    from analise.modelo import ano_referencia
+    assert ano_referencia(pd.Series([2025, 2026, 2027]), hoje="2026-09-26") == 2026
+    assert ano_referencia(pd.Series([2024, 2025]), hoje="2026-09-26") == 2025
+    assert ano_referencia(pd.Series([2027]), hoje="2026-09-26") == 2027

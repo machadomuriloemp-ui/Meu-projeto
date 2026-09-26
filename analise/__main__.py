@@ -60,7 +60,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     print("== 4/5 Modelo de previsão")
     m = modelo.ModeloAtraso().treinar(tabela)
     previsoes = m.prever(tabela)
-    risco = modelo.risco_concessionarias(previsoes, tabela)
+    risco = modelo.risco_concessionarias(previsoes, tabela, hoje=hoje)
     print(f"  {m.metricas}")
 
     print("== 5/5 Impacto e relatório")

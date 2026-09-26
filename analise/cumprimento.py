@@ -9,7 +9,8 @@ from . import config
 from .carregar import MESES
 
 TETO_INDICE = 150.0       # executar 3x o previsto num mês não deve dominar a média
-MIN_MESES_TENDENCIA = 6
+MIN_MESES_TENDENCIA = 6   # meses com meta
+MIN_JANELA_TENDENCIA = 12  # meses entre o primeiro e o último ponto
 
 
 def chave_obra(df: pd.DataFrame) -> pd.Series:
@@ -136,7 +137,7 @@ def tendencia(serie: pd.DataFrame) -> pd.DataFrame:
                  "cumprimento_ult_6m": float(np.nanmean(y[-6:])) if len(y) else np.nan,
                  "pct_meses_cumpridos": float(np.mean(y >= config.TOLERANCIA_CUMPRIMENTO * 100) * 100)
                  if len(y) else np.nan}
-        if len(g) >= MIN_MESES_TENDENCIA and np.ptp(x) > 0 and np.ptp(y) > 0:
+        if len(g) >= MIN_MESES_TENDENCIA and np.ptp(x) >= MIN_JANELA_TENDENCIA - 1 and np.ptp(y) > 0:
             linha["inclinacao_pp_ano"] = stats.theilslopes(y, x)[0] * 12
             linha["p_valor"] = stats.kendalltau(x, y).pvalue
         else:

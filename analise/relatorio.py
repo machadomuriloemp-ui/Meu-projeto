@@ -239,9 +239,15 @@ def gerar(r: dict, pasta: Path) -> Path:
     md.append("## 5. Obras com maior probabilidade de atraso\n")
     prev = r["previsoes"]
     if not prev.empty:
-        prev = prev.sort_values("prob_atraso", ascending=False).head(15)
-    if not prev.empty:
         prev = prev.assign(rotulo=prev.apply(_rotulo_obra, axis=1))
+        prev = (prev.sort_values("prob_atraso", ascending=False)
+                .groupby(["concessionaria", "rotulo"], sort=False)
+                .agg(prob_atraso=("prob_atraso", "max"), itens=("prob_atraso", "size"),
+                     motivos_provaveis=("motivos_provaveis", "first"))
+                .reset_index().head(15))
+        prev["rotulo"] = np.where(prev["itens"] > 1,
+                                  prev["rotulo"] + " — " + prev["itens"].astype(str) + " itens",
+                                  prev["rotulo"])
     md.append(tabela(prev, {
         "concessionaria": ("Concessionária", txt),
         "rotulo": ("Obra", txt),
