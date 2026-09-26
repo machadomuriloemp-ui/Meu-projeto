@@ -250,3 +250,39 @@ def motivos_por_concessionaria(obras: pd.DataFrame, fatores: list[str]) -> pd.Da
             or "Sem motivo registrado nas bases",
         })
     return pd.DataFrame(linhas)
+
+
+def fatores_por_concessionaria(obras: pd.DataFrame, fatores: list[str]) -> pd.DataFrame:
+    """Para cada concessionária: em quantas das obras atrasadas cada fator aparece."""
+    base = obras.dropna(subset=["atrasou"])
+    linhas = []
+    for conc, g in base.groupby("concessionaria"):
+        atrasadas = g[g["atrasou"] == 1]
+        if atrasadas.empty:
+            continue
+        for f in fatores:
+            if f not in g:
+                continue
+            com = atrasadas[f].fillna(0) > 0
+            if not com.any():
+                continue
+            todas_com = g[f].fillna(0) > 0
+            linhas.append({
+                "concessionaria": conc, "fator": ROTULOS.get(f, f),
+                "obras_atrasadas_com_fator": int(com.sum()),
+                "pct_das_atrasadas": com.mean() * 100,
+                "taxa_atraso_com_fator_pct": g.loc[todas_com, "atrasou"].mean() * 100,
+                "obras_com_fator": int(todas_com.sum()),
+            })
+    df = pd.DataFrame(linhas)
+    return df.sort_values(["concessionaria", "pct_das_atrasadas"], ascending=[True, False]) if not df.empty else df
+
+
+def tipos_por_concessionaria(obras: pd.DataFrame, minimo: int = 2) -> pd.DataFrame:
+    base = obras.dropna(subset=["atrasou"])
+    if base.empty or "tipo" not in base:
+        return pd.DataFrame()
+    r = (base.groupby(["concessionaria", "tipo"])
+         .agg(obras=("atrasou", "size"), taxa_atraso_pct=("atrasou", "mean")).reset_index())
+    r["taxa_atraso_pct"] *= 100
+    return r[r["obras"] >= minimo].sort_values(["concessionaria", "taxa_atraso_pct"], ascending=[True, False])

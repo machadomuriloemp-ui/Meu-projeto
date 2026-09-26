@@ -127,3 +127,20 @@ def test_previsao_do_proximo_ano_quando_o_plano_existe(resultado_simulado):
     assert not prox.empty
     assert (prox["ano"] == 2027).all()
     assert prox.iloc[0]["concessionaria"] == "VIA SUL"
+
+
+def test_painel_tem_dados_de_cada_concessionaria(resultado_simulado):
+    """Ao filtrar uma concessionária, o painel mostra só os dados dela."""
+    import json
+    d = json.loads((resultado_simulado["_saida"] / "docs" / "dados.json").read_text(encoding="utf-8"))
+    todas = {"VIA SUL", "VIA COSTEIRA", "RIOSP", "WAY 262"}
+    assert set(d["por_concessionaria"]) == todas
+    assert set(d["fatores_por_concessionaria"]) <= todas
+    assert set(d["tipos_por_concessionaria"]) == todas
+    assert set(d["impacto_por_ano"]) == todas
+    assert set(d["backtest"]["faixas_por_concessionaria"]) == todas
+    via_sul = d["por_concessionaria"]["VIA SUL"]
+    assert via_sul["atrasadas_historico"] <= via_sul["obras_ano_historico"]
+    # A soma das obras do teste por concessionária bate com o total
+    total = sum(f["obras"] for fx in d["backtest"]["faixas_por_concessionaria"].values() for f in fx)
+    assert total == d["backtest"]["obras"]

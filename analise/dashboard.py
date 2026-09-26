@@ -74,8 +74,37 @@ COLS_RISCO = ["concessionaria", "ano", "risco", "prob_nao_cumprir_plano_pct", "c
 def _backtest(bt: dict) -> dict:
     if not bt:
         return {}
-    return {k: ([{c: _limpo(v) for c, v in linha.items()} for linha in val] if isinstance(val, list)
-                else _limpo(val)) for k, val in bt.items()}
+    lista = lambda val: [{c: _limpo(v) for c, v in linha.items()} for linha in val]  # noqa: E731
+    saida = {}
+    for k, val in bt.items():
+        if isinstance(val, list):
+            saida[k] = lista(val)
+        elif isinstance(val, dict):
+            saida[k] = {c: lista(v) for c, v in val.items()}
+        else:
+            saida[k] = _limpo(val)
+    return saida
+
+
+def _agrupar(df: pd.DataFrame | None, colunas: list[str]) -> dict:
+    """{concessionaria: [linhas]} para os detalhes de cada concessionária no painel."""
+    if df is None or df.empty:
+        return {}
+    return {c: _linhas(g, colunas) for c, g in df.groupby("concessionaria")}
+
+
+def _resumo_concessionarias(obras: pd.DataFrame) -> dict:
+    if obras is None or obras.empty:
+        return {}
+    res = {}
+    for c, g in obras.groupby("concessionaria"):
+        hist = g.dropna(subset=["atrasou"])
+        res[c] = {"obras": int(g["obra"].nunique()),
+                  "anos": [int(g["ano"].min()), int(g["ano"].max())],
+                  "obras_ano_historico": int(len(hist)),
+                  "atrasadas_historico": int(hist["atrasou"].sum()) if len(hist) else 0,
+                  "taxa_atraso_historica_pct": _limpo(hist["atrasou"].mean() * 100) if len(hist) else None}
+    return res
 
 
 def exportar(r: dict, destino: Path) -> Path:
@@ -120,6 +149,13 @@ def exportar(r: dict, destino: Path) -> Path:
                             "taxa_atraso_sem_fator_pct", "lift"]),
         "tipos": _linhas(r["motivos_tipo"].head(12) if not r["motivos_tipo"].empty else r["motivos_tipo"],
                          ["tipo", "obras", "taxa_atraso_pct"]),
+        "por_concessionaria": _resumo_concessionarias(obras),
+        "fatores_por_concessionaria": _agrupar(r.get("fatores_conc"), [
+            "fator", "obras_atrasadas_com_fator", "pct_das_atrasadas", "taxa_atraso_com_fator_pct",
+            "obras_com_fator"]),
+        "tipos_por_concessionaria": _agrupar(r.get("tipos_conc"), ["tipo", "obras", "taxa_atraso_pct"]),
+        "impacto_por_ano": _agrupar(r.get("impacto_ano"), [
+            "ano", "obras_atrasadas", "deficit_total_pp", "km_nao_entregues", "postergacao_media_meses"]),
         "motivos_concessionaria": _linhas(r.get("motivos_conc"),
                                           ["concessionaria", "obras_atrasadas", "principais_fatores"]),
         "impacto": _linhas(r.get("impacto"), ["concessionaria", "obras_atrasadas", "km_nao_entregues",

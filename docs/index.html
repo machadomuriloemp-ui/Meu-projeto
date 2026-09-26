@@ -145,6 +145,12 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .faixa p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
 .medidor { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 8px 0 0; }
 .medidor span { display: block; height: 100%; border-radius: 99px; }
+.ficha { border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+.ficha .grande { font-size: 40px; font-weight: 700; line-height: 1.05; }
+.ficha .grande small { font-size: 15px; font-weight: 600; color: var(--ink-2); margin-left: 4px; }
+.ficha dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 12px 0 0; font-size: 14px; }
+.ficha dt { color: var(--ink-2); }
+.ficha dd { margin: 0; font-weight: 600; text-align: right; }
 .destaque-texto { font-size: 15px; background: var(--surface-2); border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; }
 
 /* Linha */
@@ -235,7 +241,7 @@ header.topo { position: relative; }
   <main>
     <section class="card largo" id="card-risco">
       <h2 id="titulo-risco">Quem tende a atrasar</h2>
-      <p class="explica">Chance de a concessionária executar <b>menos de 90%</b> do que planejou para o ano, calculada pelo modelo a partir do risco de cada obra. Toque em uma barra para filtrar o painel.</p>
+      <p class="explica" id="explica-risco"></p>
       <div class="abas" id="abas-ano" role="group" aria-label="Ano da previsão" hidden></div>
       <div class="legenda" id="legenda-risco"></div>
       <div class="barras" id="barras-risco"></div>
@@ -246,9 +252,11 @@ header.topo { position: relative; }
       <p class="explica" id="explica-prova"></p>
       <p class="destaque-texto" id="resumo-prova"></p>
       <div class="prova" id="faixas-prova"></div>
-      <h3 style="font-size:15px;margin:4px 0 4px">Por concessionária: previsto × o que aconteceu</h3>
-      <p class="explica" style="margin-bottom:8px">Percentual de obras que o modelo esperava que atrasassem e percentual que realmente atrasou.</p>
-      <div class="tabela"><table id="tabela-prova"></table></div>
+      <div id="bloco-prova-conc">
+        <h3 style="font-size:15px;margin:4px 0 4px">Por concessionária: previsto × o que aconteceu</h3>
+        <p class="explica" style="margin-bottom:8px">Percentual de obras que o modelo esperava que atrasassem e percentual que realmente atrasou.</p>
+        <div class="tabela"><table id="tabela-prova"></table></div>
+      </div>
     </section>
 
     <section class="card largo" id="card-heranca">
@@ -265,15 +273,15 @@ header.topo { position: relative; }
     </section>
 
     <section class="card">
-      <h2>Por que as obras atrasam?</h2>
-      <p class="explica">Quantas vezes cada fator aumenta a chance de uma obra atrasar, comparado à média (1× = neutro). Base: obras de anos já encerrados.</p>
+      <h2 id="titulo-fatores">Por que as obras atrasam?</h2>
+      <p class="explica" id="explica-fatores"></p>
       <div class="barras empilhado" id="barras-fatores"></div>
       <p class="eixo-nota" id="motivos-conc"></p>
     </section>
 
     <section class="card">
-      <h2>Tipos de obra que mais atrasam</h2>
-      <p class="explica">Percentual de obras de cada tipo que executaram menos de 90% do previsto no ano.</p>
+      <h2 id="titulo-tipos">Tipos de obra que mais atrasam</h2>
+      <p class="explica">Percentual de obras de cada tipo que executaram menos de 90% do previsto no ano (anos encerrados).</p>
       <div class="barras empilhado" id="barras-tipos"></div>
     </section>
 
@@ -286,8 +294,8 @@ header.topo { position: relative; }
     </section>
 
     <section class="card largo">
-      <h2>Impacto dos atrasos (anos encerrados)</h2>
-      <p class="explica">O que deixou de ser entregue: km (déficit × extensão da obra), postergação média do término e registros oficiais de inexecução e Fator D (desconto na tarifa).</p>
+      <h2 id="titulo-impacto">Impacto dos atrasos (anos encerrados)</h2>
+      <p class="explica" id="explica-impacto"></p>
       <div class="tabela"><table id="tabela-impacto"></table></div>
     </section>
 
@@ -371,18 +379,45 @@ header.topo { position: relative; }
     });
   }
 
+  // ---------- auxiliares da concessionária selecionada ----------
+  const riscoDe = (c, lista = D.risco) => lista.find(r => r.concessionaria === c);
+  const tendDe = c => D.tendencia.find(r => r.concessionaria === c);
+  const ICONE_TEND = { Melhorando: "↗", Piorando: "↘", "Estável": "→" };
+  function ficha(valor, rotulo, cor, linhas) {
+    return `<div class="ficha"><div class="grande num">${valor}<small>${rotulo}</small></div>` +
+      (cor ? `<div class="medidor"><span style="width:${Math.min(100, parseFloat(valor) || 0)}%;background:${cor}"></span></div>` : "") +
+      `<dl>${linhas.map(([k, v]) => `<dt>${k}</dt><dd class="num">${v}</dd>`).join("")}</dl></div>`;
+  }
+
   // ---------- KPIs ----------
   function kpis() {
     const r = D.resumo, m = D.modelo;
     const auc = m.auc_teste ?? m.auc_cv;
-    const itens = [
-      ["Concessionárias analisadas", nf(r.concessionarias), `${r.anos[0]}–${r.anos[1]}`],
-      ["Obras analisadas", nf(r.obras), "itens de investimento dos contratos"],
-      ["Obras que atrasaram", pct(r.taxa_atraso_historica_pct), `de ${nf(r.obras_ano_historico)} metas anuais já encerradas`],
-      [`Risco alto em ${r.ano_referencia ?? "–"}`, `${nf(r.risco_alto)} de ${nf(D.risco.length)}`, "concessionárias com ≥ 66% de chance de não cumprir"],
-      ["Acerto do modelo (AUC)", auc == null ? "–" : nf(auc, 2),
-        m.auc_teste != null ? `testado em ${m.ano_teste}, ano que o modelo não viu` : "validação cruzada"],
-    ];
+    let itens;
+    if (!sel) {
+      itens = [
+        ["Concessionárias analisadas", nf(r.concessionarias), `${r.anos[0]}–${r.anos[1]}`],
+        ["Obras analisadas", nf(r.obras), "itens de investimento dos contratos"],
+        ["Obras que atrasaram", pct(r.taxa_atraso_historica_pct), `de ${nf(r.obras_ano_historico)} metas anuais já encerradas`],
+        [`Risco alto em ${r.ano_referencia ?? "–"}`, `${nf(r.risco_alto)} de ${nf(D.risco.length)}`, "concessionárias com ≥ 66% de chance de não cumprir"],
+        ["Acerto do modelo (AUC)", auc == null ? "–" : nf(auc, 2),
+          m.auc_teste != null ? `testado em ${m.ano_teste}, ano que o modelo não viu` : "validação cruzada"],
+      ];
+    } else {
+      const c = (D.por_concessionaria || {})[sel] || {}, rk = riscoDe(sel), t = tendDe(sel);
+      const pos = rk ? D.risco.indexOf(rk) + 1 : null;
+      itens = [
+        ["Obras analisadas", nf(c.obras), c.anos ? `${c.anos[0]}–${c.anos[1]}` : ""],
+        ["Metas que atrasaram", pct(c.taxa_atraso_historica_pct),
+          c.obras_ano_historico ? `${nf(c.atrasadas_historico)} de ${nf(c.obras_ano_historico)} metas anuais encerradas` : "sem anos encerrados ainda"],
+        [`Chance de não cumprir ${rk ? rk.ano : ""}`, rk ? pct(rk.prob_nao_cumprir_plano_pct) : "–",
+          rk ? `risco ${rk.risco.toLowerCase()} · ${pos}º de ${D.risco.length} no ranking` : "sem plano para o ano"],
+        [`Deve ficar para ${r.ano_referencia + 1}`, rk ? `~${nf(rk.obras_para_proximo_ano)}` : "–",
+          rk ? `de ${nf(rk.obras_no_plano)} obras do plano de ${rk.ano}` : ""],
+        ["Tendência mês a mês", t ? `${ICONE_TEND[t.tendencia] || ""} ${t.tendencia}` : "–",
+          t ? `cumprimento médio ${pct(t.cumprimento_medio)}` : ""],
+      ];
+    }
     $("kpis").innerHTML = itens.map((k, i) =>
       `<div class="kpi${i === 4 ? " destaque" : ""}"><p class="rotulo">${k[0]}</p><p class="valor">${k[1]}</p><p class="nota">${k[2]}</p></div>`).join("");
     $("meta").textContent = `Atualizado em ${new Date(D.gerado_em.replace(" ", "T")).toLocaleDateString("pt-BR")} · Fonte: ${D.fonte}`;
@@ -404,25 +439,67 @@ header.topo { position: relative; }
         `<button type="button" data-ano="${a}" aria-pressed="${a === ano}">${a}</button>`).join("");
       abas.querySelectorAll("button").forEach(b => b.onclick = () => { anoSel = +b.dataset.ano; risco(); });
     }
+    if (sel) {
+      const r = riscoDe(sel, lista);
+      $("titulo-risco").textContent = `Chance de atrasar em ${ano} — ${sel}`;
+      $("explica-risco").innerHTML = `Chance de a ${esc(sel)} executar <b>menos de 90%</b> do que planejou para ${ano}, calculada pelo modelo a partir do risco de cada obra.`;
+      $("legenda-risco").innerHTML = "";
+      $("barras-risco").innerHTML = r
+        ? ficha(pct(r.prob_nao_cumprir_plano_pct), `risco ${r.risco.toLowerCase()}`, CORES[r.risco], [
+            ["Posição no ranking", `${lista.indexOf(r) + 1}º de ${lista.length}`],
+            ["Cumprimento esperado do plano", pct(r.cumprimento_esperado_pct)],
+            ["Faixa provável", esc(r.cumprimento_p10_p90)],
+            ["Obras em risco", `${nf(r.obras_em_risco)} de ${nf(r.obras_no_plano)}`]])
+        : `<p class="vazio">A ${esc(sel)} não tem plano de obras para ${ano} nas bases da ANTT.</p>`;
+      return;
+    }
     $("titulo-risco").textContent = `Quem tende a atrasar em ${ano}`;
+    $("explica-risco").innerHTML = `Chance de cada concessionária executar <b>menos de 90%</b> do que planejou para o ano, calculada pelo modelo a partir do risco de cada obra. Toque em uma barra para ver só ela.`;
     $("legenda-risco").innerHTML = ["Alto", "Médio", "Baixo"].map(f =>
       `<span class="status"><i style="background:${CORES[f]}"></i>Risco ${f.toLowerCase()}</span>`).join("");
     barras($("barras-risco"), lista.map(r => ({
-      nome: r.concessionaria, valor: r.prob_nao_cumprir_plano_pct, cor: CORES[r.risco], sel: r.concessionaria === sel,
+      nome: r.concessionaria, valor: r.prob_nao_cumprir_plano_pct, cor: CORES[r.risco],
       texto: `${pct(r.prob_nao_cumprir_plano_pct)} <small>${r.risco}${r.ano !== ano ? ` · ${r.ano}` : ""}</small>`,
       dica: `<b>${esc(r.concessionaria)}</b> · ${r.ano}<br>Chance de não cumprir: <b>${pct(r.prob_nao_cumprir_plano_pct)}</b><br>` +
         `Cumprimento esperado: ${pct(r.cumprimento_esperado_pct)} (faixa ${esc(r.cumprimento_p10_p90)})<br>` +
         `Obras em risco: ${nf(r.obras_em_risco)} de ${nf(r.obras_no_plano)}`,
-    })), { max: 100, onClick: l => selecionar(l.nome === sel ? "" : l.nome) });
+    })), { max: 100, onClick: l => selecionar(l.nome) });
   }
 
   // ---------- prova de acerto (teste às cegas) ----------
+  const CORES_FAIXA = { Alto: "var(--critical)", "Médio": "var(--warning)", Baixo: "var(--good)" };
+  function cartoesFaixas(faixas) {
+    return faixas.map(f => `<div class="faixa">
+        <div class="cab"><span class="status"><i style="background:${CORES_FAIXA[f.faixa]}"></i>Previstas como risco ${f.faixa.toLowerCase()}</span></div>
+        <div class="grande num">${pct(f.pct_atrasaram)} <small>atrasaram</small></div>
+        <div class="medidor"><span style="width:${Math.min(100, f.pct_atrasaram)}%;background:${CORES_FAIXA[f.faixa]}"></span></div>
+        <p>${nf(f.atrasaram)} de ${nf(f.obras)} obras · o modelo esperava ${pct(f.prob_media_prevista)}</p></div>`).join("");
+  }
   function prova() {
     const b = D.backtest;
     if (!b || !b.faixas) return;
     $("card-prova").hidden = false;
+    const explica = `O modelo foi treinado <b>só com os anos anteriores a ${b.ano}</b>. Com o que se sabia no meio de ${b.ano}, ele previu quais obras iam atrasar, <b>sem ver o resultado</b>. Depois, o código comparou sozinho com o que realmente aconteceu. Isso é feito de novo a cada atualização.`;
+    $("explica-prova").innerHTML = explica;
+    if (sel) {
+      $("titulo-prova").textContent = `O modelo acertou a ${sel}? Teste às cegas em ${b.ano}`;
+      $("bloco-prova-conc").hidden = true;
+      const fx = (b.faixas_por_concessionaria || {})[sel];
+      const c = (b.concessionarias || []).find(r => r.concessionaria === sel);
+      if (!fx || !fx.length) {
+        $("resumo-prova").innerHTML = `A ${esc(sel)} não tem obras de ${b.ano} encerradas para este teste.`;
+        $("faixas-prova").innerHTML = "";
+        return;
+      }
+      const n = fx.reduce((a, f) => a + f.obras, 0);
+      $("resumo-prova").innerHTML = c
+        ? `Para a ${esc(sel)}, o modelo esperava que <b>${pct(c.previsto_pct)}</b> das ${nf(c.obras)} obras atrasassem. Na realidade, <b>${pct(c.real_pct)}</b> atrasaram (diferença de ${nf(c.erro_pp)} pontos).`
+        : `A ${esc(sel)} teve ${nf(n)} obras no teste — poucas para uma comparação confiável.`;
+      $("faixas-prova").innerHTML = cartoesFaixas(fx);
+      return;
+    }
     $("titulo-prova").textContent = `O modelo acerta? Teste às cegas em ${b.ano}`;
-    $("explica-prova").innerHTML = `O modelo foi treinado <b>só com os anos anteriores a ${b.ano}</b>. Com o que se sabia no meio de ${b.ano}, ele previu quais obras iam atrasar, <b>sem ver o resultado</b>. Depois, o código comparou sozinho com o que realmente aconteceu. Isso é feito de novo a cada atualização.`;
+    $("bloco-prova-conc").hidden = false;
     const baixo = b.faixas.find(f => f.faixa === "Baixo");
     const outras = b.faixas.filter(f => f.faixa !== "Baixo");
     const nOut = outras.reduce((a, f) => a + f.obras, 0), aOut = outras.reduce((a, f) => a + f.atrasaram, 0);
@@ -432,28 +509,34 @@ header.topo { position: relative; }
       ? `Das obras que o modelo marcou como <b>risco baixo</b>, só <b>${pct(baixo.pct_atrasaram)}</b> atrasaram. Entre as de <b>risco médio ou alto</b>, <b>${pct(pOut)}</b> atrasaram${vezes && vezes >= 1.5 ? ` — <b>${nf(vezes, 1)} vezes mais</b>` : ""}.`
       : `O modelo acertou ${pct(b.acerto_pct)} das ${nf(b.obras)} obras.`) +
       `<br><span style="font-size:13px;color:var(--ink-2)">Limite honesto: ele detectou ${nf(b.atrasos_detectados)} dos ${nf(b.atrasos_reais)} atrasos que aconteceram (${pct(b.atrasos_detectados / b.atrasos_reais * 100)}). Com mais anos de histórico na base da ANTT, a tendência é melhorar.</span>`;
-    const cores = { Alto: "var(--critical)", "Médio": "var(--warning)", Baixo: "var(--good)" };
-    $("faixas-prova").innerHTML = b.faixas.map(f => `<div class="faixa">
-        <div class="cab"><span class="status"><i style="background:${cores[f.faixa]}"></i>Previstas como risco ${f.faixa.toLowerCase()}</span></div>
-        <div class="grande num">${pct(f.pct_atrasaram)} <small>atrasaram</small></div>
-        <div class="medidor"><span style="width:${Math.min(100, f.pct_atrasaram)}%;background:${cores[f.faixa]}"></span></div>
-        <p>${nf(f.atrasaram)} de ${nf(f.obras)} obras · o modelo esperava ${pct(f.prob_media_prevista)}</p></div>`).join("");
+    $("faixas-prova").innerHTML = cartoesFaixas(b.faixas);
     $("tabela-prova").innerHTML = `<thead><tr><th scope="col">Concessionária</th><th scope="col">Obras</th><th scope="col">Previsto</th><th scope="col">Aconteceu</th><th scope="col">Diferença</th></tr></thead><tbody>` +
-      b.concessionarias.map(r => `<tr class="${r.concessionaria === sel ? "sel" : ""}"><td>${esc(r.concessionaria)}</td><td class="num">${nf(r.obras)}</td><td class="num">${pct(r.previsto_pct)}</td><td class="num">${pct(r.real_pct)}</td><td class="num">${nf(r.erro_pp)} pp</td></tr>`).join("") + "</tbody>";
+      b.concessionarias.map(r => `<tr><td>${esc(r.concessionaria)}</td><td class="num">${nf(r.obras)}</td><td class="num">${pct(r.previsto_pct)}</td><td class="num">${pct(r.real_pct)}</td><td class="num">${nf(r.erro_pp)} pp</td></tr>`).join("") + "</tbody>";
   }
 
   // ---------- herança para o próximo ano ----------
   function heranca() {
     const ano = D.resumo.ano_referencia;
+    if (sel) {
+      const r = riscoDe(sel);
+      $("titulo-heranca").textContent = `O que deve ficar para ${ano + 1} — ${sel}`;
+      $("explica-heranca").innerHTML = `Estimativa de quantas obras do plano de ${ano} da ${esc(sel)} não devem cumprir a meta do ano e vão escorregar para ${ano + 1}.`;
+      $("barras-heranca").innerHTML = r
+        ? ficha(`~${nf(r.obras_para_proximo_ano)}`, `de ${nf(r.obras_no_plano)} obras`, null, [
+            ["Parcela do plano", pct(r.obras_para_proximo_ano / r.obras_no_plano * 100)],
+            ["Obras com risco ≥ 50% hoje", nf(r.obras_em_risco)]])
+        : `<p class="vazio">Sem plano de ${ano} para a ${esc(sel)}.</p>`;
+      return;
+    }
     $("titulo-heranca").textContent = `O que deve ficar para ${ano + 1}`;
     $("explica-heranca").innerHTML = `Estimativa de quantas obras do plano de ${ano} não devem cumprir a meta do ano e vão escorregar para ${ano + 1} (soma das probabilidades de atraso de cada obra).`;
     const lista = D.risco.filter(r => (r.obras_para_proximo_ano || 0) >= 0.5)
       .sort((a, b) => b.obras_para_proximo_ano - a.obras_para_proximo_ano).slice(0, 12);
     barras($("barras-heranca"), lista.map(r => ({
-      nome: r.concessionaria, valor: r.obras_para_proximo_ano, sel: r.concessionaria === sel,
+      nome: r.concessionaria, valor: r.obras_para_proximo_ano,
       texto: `~${nf(r.obras_para_proximo_ano)} <small>de ${nf(r.obras_no_plano)}</small>`,
       dica: `<b>${esc(r.concessionaria)}</b><br>~${nf(r.obras_para_proximo_ano, 1)} de ${nf(r.obras_no_plano)} obras devem ficar para ${ano + 1}`,
-    })), { onClick: l => selecionar(l.nome === sel ? "" : l.nome) });
+    })), { onClick: l => selecionar(l.nome) });
   }
 
   // ---------- linha ----------
@@ -534,22 +617,37 @@ header.topo { position: relative; }
 
   // ---------- fatores e tipos ----------
   function fatores() {
+    if (sel) {
+      const f = ((D.fatores_por_concessionaria || {})[sel] || []).slice(0, 8);
+      const mc = D.motivos_concessionaria.find(r => r.concessionaria === sel);
+      $("titulo-fatores").textContent = `Por que as obras da ${sel} atrasam?`;
+      $("explica-fatores").innerHTML = mc
+        ? `Em quantas das <b>${nf(mc.obras_atrasadas)} metas atrasadas</b> da ${esc(sel)} (anos encerrados) cada fator aparece.`
+        : `Fatores registrados nas obras atrasadas da ${esc(sel)}.`;
+      barras($("barras-fatores"), f.map(r => ({
+        nome: r.fator, valor: r.pct_das_atrasadas, texto: pct(r.pct_das_atrasadas),
+        dica: `<b>${esc(r.fator)}</b><br>Presente em ${nf(r.obras_atrasadas_com_fator)} obras atrasadas<br>` +
+          `Das ${nf(r.obras_com_fator)} obras da ${esc(sel)} com esse fator, ${pct(r.taxa_atraso_com_fator_pct)} atrasaram`,
+      })), { max: 100 });
+      $("motivos-conc").innerHTML = f.length ? "" : `Nenhum motivo registrado nas bases para as obras atrasadas da ${esc(sel)}.`;
+      return;
+    }
     const f = D.fatores.slice(0, 8);
     const max = Math.max(2, ...f.map(r => r.lift || 0));
+    $("titulo-fatores").textContent = "Por que as obras atrasam?";
+    $("explica-fatores").innerHTML = "Quantas vezes cada fator aumenta a chance de uma obra atrasar, comparado à média (1× = neutro). Base: obras de anos já encerrados, todas as concessionárias.";
     barras($("barras-fatores"), f.map(r => ({
       nome: r.fator, valor: r.lift || 0,
       cor: (r.lift || 0) > 1 ? "var(--series-1)" : "var(--muted)",
       texto: `${nf(r.lift, 1)}×`,
       dica: `<b>${esc(r.fator)}</b><br>Atrasam com o fator: ${pct(r.taxa_atraso_com_fator_pct)}<br>Sem o fator: ${pct(r.taxa_atraso_sem_fator_pct)}<br>${nf(r.obras_com_fator)} obras com o fator`,
     })), { max, ref: 1 });
-    const mc = sel && D.motivos_concessionaria.find(r => r.concessionaria === sel);
-    $("motivos-conc").innerHTML = sel
-      ? (mc ? `<b>${esc(sel)}</b> — fatores mais comuns entre as ${nf(mc.obras_atrasadas)} obras atrasadas: ${esc(mc.principais_fatores)}.`
-            : `<b>${esc(sel)}</b> ainda não tem obras atrasadas em anos encerrados.`)
-      : "A linha vertical marca 1× (sem efeito). Selecione uma concessionária para ver os fatores dela.";
+    $("motivos-conc").innerHTML = "A linha vertical marca 1× (sem efeito). Selecione uma concessionária para ver os fatores dela.";
   }
   function tipos() {
-    barras($("barras-tipos"), D.tipos.slice(0, 8).map(r => ({
+    const lista = sel ? ((D.tipos_por_concessionaria || {})[sel] || []) : D.tipos;
+    $("titulo-tipos").textContent = sel ? `Tipos de obra que mais atrasam — ${sel}` : "Tipos de obra que mais atrasam";
+    barras($("barras-tipos"), lista.slice(0, 8).map(r => ({
       nome: r.tipo, valor: r.taxa_atraso_pct, texto: pct(r.taxa_atraso_pct),
       dica: `<b>${esc(r.tipo)}</b><br>${pct(r.taxa_atraso_pct)} atrasaram · ${nf(r.obras)} metas anuais`,
     })), { max: 100 });
@@ -577,13 +675,27 @@ header.topo { position: relative; }
 
   // ---------- impacto ----------
   function impacto() {
+    if (sel) {
+      const anos = (D.impacto_por_ano || {})[sel] || [];
+      const tot = D.impacto.find(r => r.concessionaria === sel);
+      $("titulo-impacto").textContent = `Impacto dos atrasos — ${sel}`;
+      $("explica-impacto").innerHTML = `Ano a ano, o que a ${esc(sel)} deixou de entregar: obras atrasadas, soma dos pontos percentuais não executados, km (déficit × extensão da obra) e postergação média do término.` +
+        (tot && tot.inexecucao_media_pct != null ? ` Registro oficial da ANTT: inexecução média de <b>${pct(tot.inexecucao_media_pct)}</b> e Fator D de <b>${pct(tot.fator_d_total_pct, 2)}</b>.` : "");
+      $("tabela-impacto").innerHTML = anos.length
+        ? `<thead><tr><th scope="col">Ano</th><th scope="col">Obras atrasadas</th><th scope="col">Déficit (pp)</th><th scope="col">Km não entregues</th><th scope="col">Postergação (meses)</th></tr></thead><tbody>` +
+          anos.map(r => `<tr><td>${r.ano}</td><td class="num">${nf(r.obras_atrasadas)}</td><td class="num">${nf(r.deficit_total_pp)}</td><td class="num">${nf(r.km_nao_entregues, 1)}</td><td class="num">${nf(r.postergacao_media_meses, 1)}</td></tr>`).join("") + "</tbody>"
+        : `<tbody><tr><td class="vazio">Sem anos encerrados para a ${esc(sel)}.</td></tr></tbody>`;
+      return;
+    }
+    $("titulo-impacto").textContent = "Impacto dos atrasos (anos encerrados)";
+    $("explica-impacto").innerHTML = "O que deixou de ser entregue: km (déficit × extensão da obra), postergação média do término e registros oficiais de inexecução e Fator D (desconto na tarifa).";
     const cols = [["concessionaria", "Concessionária", v => esc(v)], ["obras_atrasadas", "Obras atrasadas", v => nf(v)],
       ["km_nao_entregues", "Km não entregues", v => nf(v, 1)], ["postergacao_media_meses", "Postergação (meses)", v => nf(v, 1)],
       ["inexecucao_media_pct", "Inexecução oficial", v => pct(v)], ["fator_d_total_pct", "Fator D", v => pct(v, 2)]];
     const temOficial = D.impacto.some(r => r.inexecucao_media_pct != null);
     const usar = cols.filter(c => temOficial || !["inexecucao_media_pct", "fator_d_total_pct"].includes(c[0]));
     $("tabela-impacto").innerHTML = `<thead><tr>${usar.map(c => `<th scope="col">${c[1]}</th>`).join("")}</tr></thead><tbody>` +
-      D.impacto.map(r => `<tr class="${r.concessionaria === sel ? "sel" : ""}">${usar.map(c => `<td class="num">${c[2](r[c[0]])}</td>`).join("")}</tr>`).join("") + "</tbody>";
+      D.impacto.map(r => `<tr>${usar.map(c => `<td class="num">${c[2](r[c[0]])}</td>`).join("")}</tr>`).join("") + "</tbody>";
   }
 
   // ---------- filtro ----------
@@ -592,7 +704,8 @@ header.topo { position: relative; }
     $("sel-conc").value = c; $("limpar").hidden = !c;
     const url = new URL(location); c ? url.searchParams.set("c", c) : url.searchParams.delete("c");
     history.replaceState(null, "", url);
-    risco(); prova(); heranca(); desenharLinha(); fatores(); obras(); impacto();
+    kpis(); risco(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
+    if (c) document.querySelector(".kpis").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   $("link-github").href = REPO;
@@ -606,7 +719,6 @@ header.topo { position: relative; }
     D = dados;
     const nomes = [...new Set([...D.risco.map(r => r.concessionaria), ...Object.keys(D.serie.por_concessionaria)])].sort();
     $("sel-conc").insertAdjacentHTML("beforeend", nomes.map(n => `<option>${esc(n)}</option>`).join(""));
-    kpis(); tipos();
     const inicial = new URL(location).searchParams.get("c");
     selecionar(nomes.includes(inicial) ? inicial : "");
   }).catch(err => {

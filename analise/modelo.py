@@ -197,6 +197,13 @@ def resumo_backtest(bt: pd.DataFrame) -> dict:
     conc = conc[conc["obras"] >= 3]
     conc[["previsto_pct", "real_pct"]] *= 100
     conc["erro_pp"] = (conc["previsto_pct"] - conc["real_pct"]).abs()
+    faixas_conc = {}
+    for c, g in bt.groupby("concessionaria"):
+        faixas_conc[c] = [{"faixa": nome, "obras": int(len(h)), "atrasaram": int(h["atrasou"].sum()),
+                           "pct_atrasaram": float(h["atrasou"].mean() * 100),
+                           "prob_media_prevista": float(h["prob_atraso"].mean() * 100)}
+                          for nome in ["Alto", "Médio", "Baixo"]
+                          for h in [g[g["faixa"] == nome]] if len(h)]
     acertos = (bt["previu_atraso"] == (bt["atrasou"] == 1))
     return {
         "ano": int(bt["ano"].iloc[0]),
@@ -206,6 +213,7 @@ def resumo_backtest(bt: pd.DataFrame) -> dict:
         "atrasos_detectados": int((bt["previu_atraso"] & (bt["atrasou"] == 1)).sum()),
         "faixas": faixas,
         "concessionarias": conc.sort_values("real_pct", ascending=False).to_dict("records"),
+        "faixas_por_concessionaria": faixas_conc,
     }
 
 

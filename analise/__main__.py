@@ -61,6 +61,8 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     fatores = motivos.fatores_de_atraso(tab_fatores, binarios)
     motivos_conc = motivos.motivos_por_concessionaria(tab_fatores, binarios)
     motivos_tipo = motivos.motivos_por_tipo(tabela)
+    fatores_conc = motivos.fatores_por_concessionaria(tab_fatores, binarios)
+    tipos_conc = motivos.tipos_por_concessionaria(tabela)
 
     print("== 4/5 Modelo de previsão")
     m = modelo.ModeloAtraso().treinar(tabela)
@@ -87,6 +89,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     resultado = {
         "serie": serie, "tendencia": tend, "anual": anual, "fatores": fatores,
         "motivos_conc": motivos_conc, "motivos_tipo": motivos_tipo,
+        "fatores_conc": fatores_conc, "tipos_conc": tipos_conc,
         "importancia": m.importancia(), "metricas": m.metricas, "previsoes": previsoes,
         "risco": risco, "impacto": imp, "impacto_ano": imp_ano, "inexecucao": inex,
         "obras": tabela, "info_dados": info, "risco_proximo": risco_proximo, "backtest": backtest,
