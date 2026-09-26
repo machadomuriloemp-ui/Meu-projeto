@@ -1,6 +1,6 @@
 # Cumprimento do planejado — concessões rodoviárias (ANTT)
 
-_Gerado em 26/09/2026 13:33. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
+_Gerado em 26/09/2026 13:51. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
 
 ## Resumo
 
@@ -286,8 +286,8 @@ Déficit = % previsto − % executado. Km e R$ = déficit aplicado à extensão 
 | Concessionária | Obra | Chance de atraso | Motivos prováveis |
 |---|---|---|---|
 | NOVA 381 | C.Estabilização de Taludes da BR-381/MG (BR-381/MG, km 294,8) | 96% | Desapropriação pendente; Projeto executivo não concluído; Meta anual pequena (obra em fase inicial/final) |
-| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
 | ECOVIAS DO CERRADO | Reforço e Alargamento de OAE, Ponte Ribeirão dos Pat... (BR-365/MG, km 847,8) — 2 itens | 94% | Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano |
+| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
 | NOVA 381 | Contrução de UOPs da PRF (BR-381/MG, km 217,5) | 92% | Baixa execução no ano até agora; Tipo de obra que costuma atrasar; Prazo previsto curto |
 | ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) — 10 itens | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
 | ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Rio Do... (BR-364/GO, km 113,2) — 2 itens | 92% | Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano; Prazo previsto curto |
