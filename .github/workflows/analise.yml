@@ -35,11 +35,14 @@ jobs:
 
       - name: Baixar dados da ANTT e gerar relatório
         run: |
-          if [ "${{ inputs.offline }}" = "true" ]; then
-            python -m analise --offline
-          else
-            python -m analise
-          fi
+          set -o pipefail
+          OPCAO=""
+          if [ "${{ inputs.offline }}" = "true" ]; then OPCAO="--offline"; fi
+          # Se falhar, mostra o final do log no resumo da execução (aba Actions)
+          python -m analise $OPCAO 2>&1 | tee execucao.log || {
+            echo "::error title=Falha na análise::$(tail -n 30 execucao.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          }
 
       - name: Guardar dados baixados
         if: always()
