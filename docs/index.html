@@ -8,6 +8,9 @@
 <meta property="og:title" content="Concessões rodoviárias: quem cumpre o que planeja?">
 <meta property="og:description" content="Dados abertos da ANTT + Python + Machine Learning: risco de atraso, motivos e impacto por concessionária.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://machadomuriloemp-ui.github.io/Meu-projeto/img/linkedin.png">
+<meta property="og:url" content="https://machadomuriloemp-ui.github.io/Meu-projeto/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M9 26 L14 6 M23 26 L18 6' stroke='white' stroke-width='2.5' stroke-linecap='round'/><path d='M16 9v3M16 16v3M16 23v2' stroke='%23fab219' stroke-width='2.5' stroke-linecap='round'/></svg>">
 <style>
 :root {
@@ -116,7 +119,7 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .barra.clicavel { cursor: pointer; }
 .barra.clicavel:hover, .barra:focus-visible { background: var(--surface-2); outline: none; }
 .barra.sel { background: var(--accent-soft); }
-.barra .nome { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra .nome { font-size: 13px; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .barra .trilho { position: relative; height: 16px; }
 .barra .preench { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--series-1); min-width: 2px; }
 .barra .ref { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ink-2); }
@@ -135,6 +138,7 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .grafico { position: relative; }
 .grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
 .grafico text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.grafico text.halo { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 0; }
 .stat { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
 .stat b { display: block; font-size: 17px; line-height: 1.25; }
@@ -343,7 +347,7 @@ header.topo { position: relative; }
     const auc = m.auc_teste ?? m.auc_cv;
     const itens = [
       ["Concessionárias analisadas", nf(r.concessionarias), `${r.anos[0]}–${r.anos[1]}`],
-      ["Obras acompanhadas", nf(r.obras), "itens de investimento do contrato"],
+      ["Obras analisadas", nf(r.obras), "itens de investimento dos contratos"],
       ["Obras que atrasaram", pct(r.taxa_atraso_historica_pct), `de ${nf(r.obras_ano_historico)} metas anuais já encerradas`],
       [`Risco alto em ${r.ano_referencia ?? "–"}`, `${nf(r.risco_alto)} de ${nf(D.risco.length)}`, "concessionárias com ≥ 66% de chance de não cumprir"],
       ["Acerto do modelo (AUC)", auc == null ? "–" : nf(auc, 2),
@@ -398,12 +402,17 @@ header.topo { position: relative; }
         `<text x="${m.l - 6}" y="${y(t) + 4}" text-anchor="end">${t}%</text>`;
     });
     s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(D.tolerancia_pct)}" y2="${y(D.tolerancia_pct)}" stroke="var(--ink-2)" stroke-width="1"/>` +
-      `<text x="${W - m.r}" y="${y(D.tolerancia_pct) - 5}" text-anchor="end" style="fill:var(--ink-2)">meta 90%</text>`;
+      `<text class="halo" x="${W - m.r}" y="${y(D.tolerancia_pct) - 5}" text-anchor="end" style="fill:var(--ink-2)">meta 90%</text>`;
+    // Rótulos do eixo X: nunca a menos de ~64px um do outro; o último sempre aparece
+    const gap = 64, marcas = [];
     const passo = Math.max(1, Math.ceil(pontos.length / (W < 520 ? 4 : 8)));
-    pontos.forEach((p, i) => {
-      const ultimo = i === pontos.length - 1;
-      if ((i % passo === 0 && (ultimo || pontos.length - 1 - i >= passo * 0.6)) || ultimo)
-        s += `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === pontos.length - 1 ? "end" : "middle"}">${p.periodo.replace("-M", "/")}</text>`;
+    for (let i = 0; i < pontos.length; i += passo) marcas.push(i);
+    const u0 = pontos.length - 1;
+    while (marcas.length && x(u0) - x(marcas[marcas.length - 1]) < gap) marcas.pop();
+    marcas.push(u0);
+    marcas.forEach(i => {
+      const anc = i === 0 ? "start" : i === u0 ? "end" : "middle";
+      s += `<text x="${x(i)}" y="${H - 6}" text-anchor="${anc}">${pontos[i].periodo.replace("-M", "/")}</text>`;
     });
     let d = "", aberto = false;
     ys.forEach((v, i) => { if (v == null) { aberto = false; return; } d += (aberto ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1); aberto = true; });
