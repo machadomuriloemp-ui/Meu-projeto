@@ -1,6 +1,6 @@
 # Cumprimento do planejado — concessões rodoviárias (ANTT)
 
-_Gerado em 26/09/2026 10:11. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
+_Gerado em 26/09/2026 10:14. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
 
 ## Resumo
 
@@ -57,14 +57,14 @@ Probabilidade de a concessionária executar menos de 90% do que planejou para o 
 | ECOVIAS DO ARAGUAIA | 13% | 28% | 8% | Estável | 0,0 |
 | ECOVIAS MINAS GOIÁS | 88% | 77% | 83% | Estável | -1,5 |
 | ECOVIAS RIO MINAS | 13% | 25% | 8% | Estável | 0,0 |
-| ELOVIAS | 64% | 53% | 44% | Piorando | -116,5 |
-| EPR IGUAÇU | 69% | 42% | 38% | Piorando | -244,2 |
+| ELOVIAS | 64% | 53% | 44% | Piorando | ≤ -100 |
+| EPR IGUAÇU | 69% | 42% | 38% | Piorando | ≤ -100 |
 | EPR VIA MINEIRA | 94% | 78% | 50% | Piorando | -25,7 |
 | LITORAL PIONEIRO | 119% | 127% | 75% | Estável | 0,0 |
 | MOTIVA PARANÁ | 108% | 106% | 75% | Estável | -99,0 |
 | NOVA 364 | 0% | 0% | 0% | Dados insuficientes | – |
 | NOVA 381 | 82% | 65% | 58% | Piorando | -13,4 |
-| PANTANAL | 97% | 49% | 67% | Piorando | -168,3 |
+| PANTANAL | 97% | 49% | 67% | Piorando | ≤ -100 |
 | RIOSP | 71% | 22% | 39% | Piorando | -45,6 |
 | ROTA VERDE GOIÁS | 30% | 50% | 20% | Dados insuficientes | – |
 | VIA ARAUCÁRIA | 103% | 97% | 71% | Estável | -1,6 |
@@ -244,8 +244,8 @@ Déficit = % previsto − % executado. Km e R$ = déficit aplicado à extensão 
 | Concessionária | Obra | Chance de atraso | Motivos prováveis |
 |---|---|---|---|
 | NOVA 381 | C.Estabilização de Taludes da BR-381/MG (BR-381/MG, km 294,8) | 96% | Desapropriação pendente; Projeto executivo não concluído; Meta anual pequena (obra em fase inicial/final) |
-| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
 | ECOVIAS DO CERRADO | Reforço e Alargamento de OAE, Ponte Ribeirão dos Pat... (BR-365/MG, km 847,8) — 2 itens | 94% | Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano |
+| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
 | NOVA 381 | Contrução de UOPs da PRF (BR-381/MG, km 217,5) | 92% | Baixa execução no ano até agora; Tipo de obra que costuma atrasar; Prazo previsto curto |
 | ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) — 10 itens | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
 | ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Rio Do... (BR-364/GO, km 113,2) — 2 itens | 92% | Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano; Prazo previsto curto |
