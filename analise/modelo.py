@@ -59,6 +59,7 @@ class ModeloAtraso:
         self.modelo = None
         self.explicador = None
         self.metricas: dict = {}
+        self.backtest = pd.DataFrame()   # previsões feitas "às cegas" no último ano encerrado
 
     # ------------------------------------------------------------------ treino
     def treinar(self, obras: pd.DataFrame) -> "ModeloAtraso":
@@ -108,6 +109,7 @@ class ModeloAtraso:
             warnings.simplefilter("ignore")
             m.fit(antes[self.variaveis].astype(float), antes["atrasou"].astype(int))
             p = m.predict_proba(teste[self.variaveis].astype(float))[:, 1]
+        self.backtest = teste.assign(prob_atraso=p)
         return {"auc_teste_ultimo_ano": roc_auc_score(teste["atrasou"].astype(int), p),
                 "ano_teste": int(anos[-1])}
 
@@ -157,6 +159,54 @@ class ModeloAtraso:
         df["efeito"] = np.where(df["peso"] > 0, "quanto maior, MAIS risco",
                                 "quanto maior, MENOS risco")
         return df.reindex(df["peso"].abs().sort_values(ascending=False).index).reset_index(drop=True)
+
+
+FAIXAS_OBRA = [(0.66, "Alto"), (0.33, "Médio"), (0.0, "Baixo")]
+
+
+def _faixa_obra(p: float) -> str:
+    for limite, nome in FAIXAS_OBRA:
+        if p >= limite:
+            return nome
+    return "Baixo"
+
+
+def resumo_backtest(bt: pd.DataFrame) -> dict:
+    """Confere as previsões feitas sem conhecer o resultado do ano de teste.
+
+    O modelo foi treinado só com anos anteriores e previu o ano de teste a partir
+    do que se sabia no meio dele. Aqui comparamos com o que realmente aconteceu.
+    """
+    if bt is None or bt.empty:
+        return {}
+    bt = bt.copy()
+    bt["faixa"] = bt["prob_atraso"].map(_faixa_obra)
+    bt["previu_atraso"] = bt["prob_atraso"] >= config.LIMIAR_RISCO
+    faixas = []
+    for nome in ["Alto", "Médio", "Baixo"]:
+        g = bt[bt["faixa"] == nome]
+        if len(g):
+            faixas.append({"faixa": nome, "obras": int(len(g)),
+                           "atrasaram": int(g["atrasou"].sum()),
+                           "pct_atrasaram": float(g["atrasou"].mean() * 100),
+                           "prob_media_prevista": float(g["prob_atraso"].mean() * 100)})
+    conc = (bt.groupby("concessionaria")
+            .agg(obras=("atrasou", "size"), previsto_pct=("prob_atraso", "mean"),
+                 real_pct=("atrasou", "mean"))
+            .reset_index())
+    conc = conc[conc["obras"] >= 3]
+    conc[["previsto_pct", "real_pct"]] *= 100
+    conc["erro_pp"] = (conc["previsto_pct"] - conc["real_pct"]).abs()
+    acertos = (bt["previu_atraso"] == (bt["atrasou"] == 1))
+    return {
+        "ano": int(bt["ano"].iloc[0]),
+        "obras": int(len(bt)),
+        "acerto_pct": float(acertos.mean() * 100),
+        "atrasos_reais": int(bt["atrasou"].sum()),
+        "atrasos_detectados": int((bt["previu_atraso"] & (bt["atrasou"] == 1)).sum()),
+        "faixas": faixas,
+        "concessionarias": conc.sort_values("real_pct", ascending=False).to_dict("records"),
+    }
 
 
 def _motivos_regra(linha: pd.Series) -> str:
@@ -234,6 +284,10 @@ def risco_concessionarias(previsoes: pd.DataFrame, obras: pd.DataFrame,
             "prob_media_atraso_obra_pct": float(p.mean() * 100),
             "obras_em_risco": int(g["em_risco"].sum()),
             "valor_em_risco_rs": float((p * restante * valor).sum()),
+            # O que deve escorregar para o ano seguinte (valor esperado)
+            "obras_para_proximo_ano": float(p.sum()),
+            "pp_para_proximo_ano": float((p * prev * (1 - fracoes.mean())).sum()),
+            "km_para_proximo_ano": float((p * prev / 100 * (1 - fracoes.mean()) * ext).sum()),
             "km_em_risco": float((p * prev / 100 * ext).sum()),
         })
     return (pd.DataFrame(linhas)

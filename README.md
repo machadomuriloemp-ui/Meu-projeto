@@ -66,6 +66,11 @@ flowchart LR
   modelo parecia ótimo no passado, mas falharia no uso real.
 - **Validação honesta.** Além da validação cruzada, o modelo é treinado só com anos antigos e testado
   num ano que nunca viu. Resultado atual: **AUC 0,73**, onde 0,5 é o acaso.
+- **Teste às cegas no painel.** A cada atualização, o código treina o modelo só com os anos
+  anteriores, prevê o último ano encerrado sem ver o resultado e mostra no painel quanto acertou,
+  por faixa de risco e por concessionária.
+- **Olhando para frente.** O painel estima quantas obras devem escorregar para o ano seguinte. Quando
+  a ANTT publica os planos do próximo ano, a previsão dele aparece sozinha.
 - **Testes com gabarito.** Os testes geram bases simuladas no formato exato da ANTT, com respostas
   conhecidas (quem piora, quem melhora, quais motivos), e conferem se a análise as encontra.
 - **Robustez.** O código lida com o portal fora do ar, arquivos com codificações diferentes, linhas

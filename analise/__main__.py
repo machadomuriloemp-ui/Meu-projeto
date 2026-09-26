@@ -66,6 +66,14 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     m = modelo.ModeloAtraso().treinar(tabela)
     previsoes = m.prever(tabela)
     risco = modelo.risco_concessionarias(previsoes, tabela, hoje=hoje)
+    # Próximo ano: só existe quando a ANTT já publicou os planos dele
+    risco_proximo = pd.DataFrame()
+    if not previsoes.empty and not risco.empty:
+        ano_ref = int(risco["ano"].mode().iloc[0])
+        futuras = previsoes[previsoes["ano"] == ano_ref + 1]
+        if not futuras.empty:
+            risco_proximo = modelo.risco_concessionarias(futuras, tabela, hoje=hoje)
+    backtest = modelo.resumo_backtest(m.backtest)
     print(f"  {m.metricas}")
 
     print("== 5/5 Impacto e relatório")
@@ -81,7 +89,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
         "motivos_conc": motivos_conc, "motivos_tipo": motivos_tipo,
         "importancia": m.importancia(), "metricas": m.metricas, "previsoes": previsoes,
         "risco": risco, "impacto": imp, "impacto_ano": imp_ano, "inexecucao": inex,
-        "obras": tabela, "info_dados": info,
+        "obras": tabela, "info_dados": info, "risco_proximo": risco_proximo, "backtest": backtest,
     }
     destino = relatorio.gerar(resultado, pasta_saida)
     print(f"Relatório: {destino}")

@@ -99,3 +99,31 @@ def test_pagina_do_dashboard_existe():
     html = (Path(__file__).resolve().parent.parent / "docs" / "index.html").read_text(encoding="utf-8")
     assert 'fetch("dados.json"' in html
     assert "<script src=" not in html            # sem dependências externas
+
+
+def test_teste_as_cegas(resultado_simulado):
+    """O teste às cegas (treino só com anos anteriores) precisa separar bem as faixas:
+    obras previstas como risco alto devem atrasar muito mais que as de risco baixo."""
+    bt = resultado_simulado["backtest"]
+    assert bt["ano"] == 2025
+    faixas = {f["faixa"]: f for f in bt["faixas"]}
+    assert faixas["Alto"]["pct_atrasaram"] > faixas["Baixo"]["pct_atrasaram"] + 40
+    assert bt["acerto_pct"] > 70
+    assert 0 < bt["atrasos_detectados"] <= bt["atrasos_reais"]
+    assert {c["concessionaria"] for c in bt["concessionarias"]} == {"VIA SUL", "VIA COSTEIRA",
+                                                                    "RIOSP", "WAY 262"}
+
+
+def test_heranca_para_o_proximo_ano(resultado_simulado):
+    risco = resultado_simulado["risco"].set_index("concessionaria")
+    assert (risco["obras_para_proximo_ano"] >= 0).all()
+    assert (risco["obras_para_proximo_ano"] <= risco["obras_no_plano"]).all()
+    assert risco.loc["VIA SUL", "obras_para_proximo_ano"] > risco.loc["VIA COSTEIRA", "obras_para_proximo_ano"]
+
+
+def test_previsao_do_proximo_ano_quando_o_plano_existe(resultado_simulado):
+    """Os dados simulados já têm planos de 2027: a previsão de 2027 deve aparecer sozinha."""
+    prox = resultado_simulado["risco_proximo"]
+    assert not prox.empty
+    assert (prox["ano"] == 2027).all()
+    assert prox.iloc[0]["concessionaria"] == "VIA SUL"

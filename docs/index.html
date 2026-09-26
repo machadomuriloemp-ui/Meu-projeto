@@ -133,6 +133,19 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
 .status i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .legenda { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 0 10px; }
+.abas { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; margin: 0 0 12px; }
+.abas button { font: inherit; font-size: 13.5px; font-weight: 600; border: 0; background: none; color: var(--ink-2); padding: 6px 14px; border-radius: 8px; cursor: pointer; }
+.abas button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.prova { display: grid; gap: 10px; margin: 0 0 14px; }
+@media (min-width: 720px) { .prova { grid-template-columns: repeat(3, 1fr); } }
+.faixa { border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.faixa .cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 6px; }
+.faixa .grande { font-size: 30px; font-weight: 700; line-height: 1.1; }
+.faixa .grande small { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.faixa p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.medidor { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 8px 0 0; }
+.medidor span { display: block; height: 100%; border-radius: 99px; }
+.destaque-texto { font-size: 15px; background: var(--surface-2); border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; }
 
 /* Linha */
 .grafico { position: relative; }
@@ -223,8 +236,25 @@ header.topo { position: relative; }
     <section class="card largo" id="card-risco">
       <h2 id="titulo-risco">Quem tende a atrasar</h2>
       <p class="explica">Chance de a concessionária executar <b>menos de 90%</b> do que planejou para o ano, calculada pelo modelo a partir do risco de cada obra. Toque em uma barra para filtrar o painel.</p>
+      <div class="abas" id="abas-ano" role="group" aria-label="Ano da previsão" hidden></div>
       <div class="legenda" id="legenda-risco"></div>
       <div class="barras" id="barras-risco"></div>
+    </section>
+
+    <section class="card largo" id="card-prova" hidden>
+      <h2 id="titulo-prova">O modelo acerta? Teste às cegas</h2>
+      <p class="explica" id="explica-prova"></p>
+      <p class="destaque-texto" id="resumo-prova"></p>
+      <div class="prova" id="faixas-prova"></div>
+      <h3 style="font-size:15px;margin:4px 0 4px">Por concessionária: previsto × o que aconteceu</h3>
+      <p class="explica" style="margin-bottom:8px">Percentual de obras que o modelo esperava que atrasassem e percentual que realmente atrasou.</p>
+      <div class="tabela"><table id="tabela-prova"></table></div>
+    </section>
+
+    <section class="card largo" id="card-heranca">
+      <h2 id="titulo-heranca">O que deve ficar para o próximo ano</h2>
+      <p class="explica" id="explica-heranca"></p>
+      <div class="barras" id="barras-heranca"></div>
     </section>
 
     <section class="card largo">
@@ -296,7 +326,7 @@ header.topo { position: relative; }
   const pct = (v, c = 0) => v == null ? "–" : nf(v, c) + "%";
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const $ = id => document.getElementById(id);
-  let D = null, sel = "", limiteObras = 12;
+  let D = null, sel = "", limiteObras = 12, anoSel = null;
 
   // ---------- tema ----------
   $("tema").onclick = () => {
@@ -364,17 +394,59 @@ header.topo { position: relative; }
 
   // ---------- risco ----------
   function risco() {
-    const ano = D.resumo.ano_referencia;
+    const proximo = (D.risco_proximo || []).length ? D.risco_proximo[0].ano : null;
+    const ano = anoSel || D.resumo.ano_referencia;
+    const lista = proximo && ano === proximo ? D.risco_proximo : D.risco;
+    const abas = $("abas-ano");
+    abas.hidden = !proximo;
+    if (proximo) {
+      abas.innerHTML = [D.resumo.ano_referencia, proximo].map(a =>
+        `<button type="button" data-ano="${a}" aria-pressed="${a === ano}">${a}</button>`).join("");
+      abas.querySelectorAll("button").forEach(b => b.onclick = () => { anoSel = +b.dataset.ano; risco(); });
+    }
     $("titulo-risco").textContent = `Quem tende a atrasar em ${ano}`;
     $("legenda-risco").innerHTML = ["Alto", "Médio", "Baixo"].map(f =>
       `<span class="status"><i style="background:${CORES[f]}"></i>Risco ${f.toLowerCase()}</span>`).join("");
-    barras($("barras-risco"), D.risco.map(r => ({
+    barras($("barras-risco"), lista.map(r => ({
       nome: r.concessionaria, valor: r.prob_nao_cumprir_plano_pct, cor: CORES[r.risco], sel: r.concessionaria === sel,
       texto: `${pct(r.prob_nao_cumprir_plano_pct)} <small>${r.risco}${r.ano !== ano ? ` · ${r.ano}` : ""}</small>`,
       dica: `<b>${esc(r.concessionaria)}</b> · ${r.ano}<br>Chance de não cumprir: <b>${pct(r.prob_nao_cumprir_plano_pct)}</b><br>` +
         `Cumprimento esperado: ${pct(r.cumprimento_esperado_pct)} (faixa ${esc(r.cumprimento_p10_p90)})<br>` +
         `Obras em risco: ${nf(r.obras_em_risco)} de ${nf(r.obras_no_plano)}`,
     })), { max: 100, onClick: l => selecionar(l.nome === sel ? "" : l.nome) });
+  }
+
+  // ---------- prova de acerto (teste às cegas) ----------
+  function prova() {
+    const b = D.backtest;
+    if (!b || !b.faixas) return;
+    $("card-prova").hidden = false;
+    $("titulo-prova").textContent = `O modelo acerta? Teste às cegas em ${b.ano}`;
+    $("explica-prova").innerHTML = `O modelo foi treinado <b>só com os anos anteriores a ${b.ano}</b>. Com o que se sabia no meio de ${b.ano}, ele previu quais obras iam atrasar, <b>sem ver o resultado</b>. Depois, o código comparou sozinho com o que realmente aconteceu. Isso é feito de novo a cada atualização.`;
+    $("resumo-prova").innerHTML = `Acertou <b>${pct(b.acerto_pct)}</b> das ${nf(b.obras)} obras e detectou <b>${nf(b.atrasos_detectados)} dos ${nf(b.atrasos_reais)}</b> atrasos que aconteceram.`;
+    const cores = { Alto: "var(--critical)", "Médio": "var(--warning)", Baixo: "var(--good)" };
+    $("faixas-prova").innerHTML = b.faixas.map(f => `<div class="faixa">
+        <div class="cab"><span class="status"><i style="background:${cores[f.faixa]}"></i>Previstas como risco ${f.faixa.toLowerCase()}</span></div>
+        <div class="grande num">${pct(f.pct_atrasaram)} <small>atrasaram</small></div>
+        <div class="medidor"><span style="width:${Math.min(100, f.pct_atrasaram)}%;background:${cores[f.faixa]}"></span></div>
+        <p>${nf(f.atrasaram)} de ${nf(f.obras)} obras · o modelo esperava ${pct(f.prob_media_prevista)}</p></div>`).join("");
+    $("tabela-prova").innerHTML = `<thead><tr><th scope="col">Concessionária</th><th scope="col">Obras</th><th scope="col">Previsto</th><th scope="col">Aconteceu</th><th scope="col">Diferença</th></tr></thead><tbody>` +
+      b.concessionarias.map(r => `<tr class="${r.concessionaria === sel ? "sel" : ""}"><td>${esc(r.concessionaria)}</td><td class="num">${nf(r.obras)}</td><td class="num">${pct(r.previsto_pct)}</td><td class="num">${pct(r.real_pct)}</td><td class="num">${nf(r.erro_pp)} pp</td></tr>`).join("") + "</tbody>";
+  }
+
+  // ---------- herança para o próximo ano ----------
+  function heranca() {
+    const ano = D.resumo.ano_referencia;
+    $("titulo-heranca").textContent = `O que deve ficar para ${ano + 1}`;
+    $("explica-heranca").innerHTML = `Estimativa de quantas obras do plano de ${ano} não devem ser concluídas no prazo e vão escorregar para ${ano + 1} (soma das probabilidades de atraso de cada obra). Os km consideram só obras com extensão informada.`;
+    const lista = D.risco.filter(r => (r.obras_para_proximo_ano || 0) >= 0.5)
+      .sort((a, b) => b.obras_para_proximo_ano - a.obras_para_proximo_ano).slice(0, 12);
+    barras($("barras-heranca"), lista.map(r => ({
+      nome: r.concessionaria, valor: r.obras_para_proximo_ano, sel: r.concessionaria === sel,
+      texto: `~${nf(r.obras_para_proximo_ano)} <small>obras${r.km_para_proximo_ano >= 1 ? ` · ${nf(r.km_para_proximo_ano)} km` : ""}</small>`,
+      dica: `<b>${esc(r.concessionaria)}</b><br>~${nf(r.obras_para_proximo_ano, 1)} de ${nf(r.obras_no_plano)} obras devem ficar para ${ano + 1}` +
+        (r.km_para_proximo_ano >= 0.1 ? `<br>~${nf(r.km_para_proximo_ano, 1)} km de obra` : ""),
+    })), { onClick: l => selecionar(l.nome === sel ? "" : l.nome) });
   }
 
   // ---------- linha ----------
@@ -513,7 +585,7 @@ header.topo { position: relative; }
     $("sel-conc").value = c; $("limpar").hidden = !c;
     const url = new URL(location); c ? url.searchParams.set("c", c) : url.searchParams.delete("c");
     history.replaceState(null, "", url);
-    risco(); desenharLinha(); fatores(); obras(); impacto();
+    risco(); prova(); heranca(); desenharLinha(); fatores(); obras(); impacto();
   }
 
   $("link-github").href = REPO;

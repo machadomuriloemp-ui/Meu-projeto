@@ -65,6 +65,19 @@ def _obras(prev: pd.DataFrame) -> list[dict]:
                        "previsto_anual", "executado_ytd", "prob", "motivos_provaveis"])
 
 
+COLS_RISCO = ["concessionaria", "ano", "risco", "prob_nao_cumprir_plano_pct", "cumprimento_esperado_pct",
+              "cumprimento_p10_p90", "obras_no_plano", "obras_em_risco", "km_em_risco",
+              "valor_em_risco_rs", "obras_para_proximo_ano", "pp_para_proximo_ano",
+              "km_para_proximo_ano"]
+
+
+def _backtest(bt: dict) -> dict:
+    if not bt:
+        return {}
+    return {k: ([{c: _limpo(v) for c, v in linha.items()} for linha in val] if isinstance(val, list)
+                else _limpo(val)) for k, val in bt.items()}
+
+
 def exportar(r: dict, destino: Path) -> Path:
     destino.parent.mkdir(parents=True, exist_ok=True)
     m = r.get("metricas", {})
@@ -92,9 +105,9 @@ def exportar(r: dict, destino: Path) -> Path:
             "comparacao": m.get("comparacao", {}),
             "obras_treino": m.get("obras_treino"),
         },
-        "risco": _linhas(risco, ["concessionaria", "ano", "risco", "prob_nao_cumprir_plano_pct",
-                                 "cumprimento_esperado_pct", "cumprimento_p10_p90", "obras_no_plano",
-                                 "obras_em_risco", "km_em_risco", "valor_em_risco_rs"]),
+        "risco": _linhas(risco, COLS_RISCO),
+        "risco_proximo": _linhas(r.get("risco_proximo"), COLS_RISCO),
+        "backtest": _backtest(r.get("backtest", {})),
         "tendencia": _linhas(r.get("tendencia"), ["concessionaria", "cumprimento_medio", "cumprimento_ult_6m",
                                                    "pct_meses_cumpridos", "tendencia", "inclinacao_pp_ano",
                                                    "meses_com_meta"]),
