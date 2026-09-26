@@ -66,6 +66,10 @@ flowchart LR
   modelo parecia ótimo no passado, mas falharia no uso real.
 - **Validação honesta.** Além da validação cruzada, o modelo é treinado só com anos antigos e testado
   num ano que nunca viu. Resultado atual: **AUC 0,73**, onde 0,5 é o acaso.
+- **Checagem de consistência entre bases.** O valor investido que a concessionária declara no
+  ano (base de investimentos) é comparado com a execução física informada nas obras. Investimento
+  declarado sem execução informada indica falta de preenchimento: o ano é sinalizado no painel e
+  fica fora do cálculo de atraso e do modelo.
 - **Teste às cegas no painel.** A cada atualização, o código treina o modelo só com os anos
   anteriores, prevê o último ano encerrado sem ver o resultado e mostra no painel quanto acertou,
   por faixa de risco e por concessionária.
