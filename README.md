@@ -1,7 +1,7 @@
 # 🛣️ Concessões rodoviárias: quem cumpre o que planeja?
 
-[![Testes](https://github.com/machadomuriloemp-ui/Meu-projeto/actions/workflows/testes.yml/badge.svg)](https://github.com/machadomuriloemp-ui/Meu-projeto/actions/workflows/testes.yml)
-[![Análise mensal](https://github.com/machadomuriloemp-ui/Meu-projeto/actions/workflows/analise.yml/badge.svg)](https://github.com/machadomuriloemp-ui/Meu-projeto/actions/workflows/analise.yml)
+[![Testes](https://github.com/machadomuriloemp-ui/cumprimento-obras-concessoes/actions/workflows/testes.yml/badge.svg)](https://github.com/machadomuriloemp-ui/cumprimento-obras-concessoes/actions/workflows/testes.yml)
+[![Análise mensal](https://github.com/machadomuriloemp-ui/cumprimento-obras-concessoes/actions/workflows/analise.yml/badge.svg)](https://github.com/machadomuriloemp-ui/cumprimento-obras-concessoes/actions/workflows/analise.yml)
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)
 ![Dados abertos](https://img.shields.io/badge/dados-ANTT-2a78d6)
@@ -10,7 +10,7 @@ Projeto de ciência de dados que usa os **dados abertos da ANTT** para analisar 
 de rodovias federais executam as obras no ritmo que planejaram. O projeto também **prevê, com machine
 learning, quem tende a atrasar** e mostra os motivos e o impacto dos atrasos.
 
-### 👉 [Abrir o painel interativo](https://machadomuriloemp-ui.github.io/Meu-projeto/)
+### 👉 [Abrir o painel interativo](https://machadomuriloemp-ui.github.io/cumprimento-obras-concessoes/)
 
 <p align="center">
   <img src="docs/img/painel-desktop.png" alt="Painel no computador" width="68%">
