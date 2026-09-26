@@ -112,6 +112,10 @@ def gerar(pasta: Path, obras_por_ano: int = 22, semente: int = 7,
                 if lic:
                     obs = OBS_ATRASO[0]
                 desc = f"{tipo} - km {km:.3f} - obra {id_seq}"
+                if conc == "RIOSP" and tipo == "Adequação de Acostamento":
+                    # Como na base real: vários itens com ids diferentes e a MESMA
+                    # descrição e km (ex.: cada acesso de um segmento)
+                    km, desc = 12.5, "L. Acessos - SEGMENTO 1 - RJ"
 
                 # Planejamento: 1 a 3 versões; obras que atrasam têm meta cortada
                 # Versões: v1 (jan), v2 (mai), v3 (set), v4 (fev do ano seguinte).

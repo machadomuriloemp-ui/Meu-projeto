@@ -54,15 +54,46 @@ def _serie(serie: pd.DataFrame) -> dict:
             "geral": _linhas(geral, ["periodo", "t", "indice", "previsto", "executado", "concessionarias"])}
 
 
-def _obras(prev: pd.DataFrame) -> list[dict]:
+def obras_para_o_painel(prev: pd.DataFrame, anos_validos: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Lista de obras mostrada no painel.
+
+    * Só entram os anos que estão sendo avaliados para cada concessionária (o ano
+      do ranking e, se houver plano, o seguinte) — planos de anos que já passaram
+      sem acompanhamento não são "previsões".
+    * A ANTT cadastra vários itens idênticos (mesma descrição, rodovia e km, ids
+      diferentes — ex.: cada acesso de um segmento). Eles viram um card só, com a
+      quantidade de itens.
+    """
     if prev is None or prev.empty:
-        return []
+        return pd.DataFrame()
     p = prev.copy()
-    p["prob"] = (p["prob_atraso"] * 100).round(1)
     p["ano"] = p["ano"].astype(int)
+    if anos_validos is not None and not anos_validos.empty:
+        chaves = set(zip(anos_validos["concessionaria"], anos_validos["ano"].astype(int)))
+        p = p[[(c, a) in chaves for c, a in zip(p["concessionaria"], p["ano"])]]
+    if p.empty:
+        return p
+    p["prob"] = (p["prob_atraso"] * 100).round(1)
+    for c in ["descricao", "tipo", "rodovia"]:
+        if c not in p:
+            p[c] = ""
+        p[c] = p[c].astype("string").fillna("")
+    if "km_inicial" not in p:
+        p["km_inicial"] = np.nan
+    p["_km"] = p["km_inicial"].round(3).fillna(-1)
     p = p.sort_values("prob", ascending=False)
+    chave = ["concessionaria", "ano", "descricao", "rodovia", "_km", "tipo"]
+    grupos = p.groupby(chave, sort=False, dropna=False)
+    agrup = grupos.first().reset_index()   # a linha de maior probabilidade de cada grupo
+    agrup["itens"] = grupos.size().to_numpy()
+    agrup["prob_media"] = grupos["prob"].mean().round(1).to_numpy()
+    return agrup.drop(columns="_km").sort_values("prob", ascending=False).reset_index(drop=True)
+
+
+def _obras(prev: pd.DataFrame, anos_validos: pd.DataFrame | None = None) -> list[dict]:
+    p = obras_para_o_painel(prev, anos_validos)
     return _linhas(p, ["concessionaria", "ano", "situacao", "descricao", "tipo", "rodovia", "km_inicial",
-                       "previsto_anual", "executado_ytd", "prob", "motivos_provaveis"])
+                       "previsto_anual", "executado_ytd", "prob", "prob_media", "itens", "motivos_provaveis"])
 
 
 COLS_RISCO = ["concessionaria", "ano", "risco", "prob_nao_cumprir_plano_pct", "cumprimento_esperado_pct",
@@ -161,7 +192,9 @@ def exportar(r: dict, destino: Path) -> Path:
         "impacto": _linhas(r.get("impacto"), ["concessionaria", "obras_atrasadas", "km_nao_entregues",
                                               "valor_nao_executado_rs", "postergacao_media_meses",
                                               "inexecucao_media_pct", "fator_d_total_pct"]),
-        "obras": _obras(r.get("previsoes")),
+        "obras": _obras(r.get("previsoes"), pd.concat(
+            [x[["concessionaria", "ano"]] for x in (r.get("risco"), r.get("risco_proximo"))
+             if x is not None and not x.empty], ignore_index=True) if not risco.empty else None),
     }
     destino.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     return destino

@@ -438,7 +438,7 @@ header.topo { position: relative; }
     if (proximo) {
       abas.innerHTML = [D.resumo.ano_referencia, proximo].map(a =>
         `<button type="button" data-ano="${a}" aria-pressed="${a === ano}">${a}</button>`).join("");
-      abas.querySelectorAll("button").forEach(b => b.onclick = () => { anoSel = +b.dataset.ano; risco(); });
+      abas.querySelectorAll("button").forEach(b => b.onclick = () => { anoSel = +b.dataset.ano; limiteObras = 12; risco(); obras(); });
     }
     if (sel) {
       const r = riscoDe(sel, lista);
@@ -658,17 +658,20 @@ header.topo { position: relative; }
   function obras() {
     const q = $("busca").value.trim().toLowerCase();
     const ano = D.resumo.ano_referencia;
-    let lista = D.obras.filter(o => (!sel || o.concessionaria === sel) && (sel || o.ano === ano));
+    const anoVer = anoSel || ano;
+    let lista = D.obras.filter(o => (sel ? o.concessionaria === sel : true) && o.ano === anoVer);
     if (q) lista = lista.filter(o => [o.descricao, o.rodovia, o.tipo, o.concessionaria].join(" ").toLowerCase().includes(q));
-    $("titulo-obras").textContent = sel ? `Obras com maior chance de atraso — ${sel}` : `Obras com maior chance de atraso em ${ano}`;
+    $("titulo-obras").textContent = sel ? `Obras com maior chance de atraso em ${anoVer} — ${sel}` : `Obras com maior chance de atraso em ${anoVer}`;
     const el = $("lista-obras");
     if (!lista.length) { el.innerHTML = '<p class="vazio">Nenhuma obra encontrada.</p>'; $("mais-obras").hidden = true; return; }
     el.innerHTML = lista.slice(0, limiteObras).map(o => {
       const cor = o.prob >= 66 ? "var(--critical)" : o.prob >= 33 ? "var(--warning)" : "var(--good)";
       const onde = [sel ? null : o.concessionaria, o.rodovia, o.km_inicial != null ? "km " + nf(o.km_inicial, 1) : null, o.ano].filter(Boolean).join(" · ");
       const chips = (o.motivos_provaveis || "").split(";").map(s => s.trim()).filter(Boolean).map(s => `<span class="chip">${esc(s)}</span>`).join("");
+      const itens = o.itens > 1
+        ? `<p class="onde"><b>${nf(o.itens)} itens</b> do plano com esta mesma descrição e km (chance média ${pct(o.prob_media)})</p>` : "";
       return `<article class="obra"><div class="prob num" style="box-shadow: inset 0 -3px 0 ${cor}">${Math.round(o.prob)}%</div>
-        <div><p class="titulo">${esc(o.descricao || o.tipo || "Obra")}</p><p class="onde">${esc(onde)}</p><div class="chips">${chips}</div></div></article>`;
+        <div><p class="titulo">${esc(o.descricao || o.tipo || "Obra")}</p><p class="onde">${esc(onde)}</p>${itens}<div class="chips">${chips}</div></div></article>`;
     }).join("");
     $("mais-obras").hidden = lista.length <= limiteObras;
     $("mais-obras").textContent = `Mostrar mais (${nf(lista.length - limiteObras)} restantes)`;
