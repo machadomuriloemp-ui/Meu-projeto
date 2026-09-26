@@ -1,0 +1,62 @@
+name: Rodar análise
+
+on:
+  workflow_dispatch:
+    inputs:
+      offline:
+        description: "Usar só os CSVs já salvos em dados/brutos (não baixar da ANTT)"
+        type: boolean
+        default: false
+  schedule:
+    # Todo dia 16, às 8h50 de Brasília (a ANTT atualiza as bases por volta do dia 14)
+    - cron: "50 11 16 * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: analise
+  cancel-in-progress: false
+
+jobs:
+  analise:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Conferir o código (testes)
+        run: python -m pytest testes -q
+
+      - name: Baixar dados da ANTT e gerar relatório
+        run: |
+          if [ "${{ inputs.offline }}" = "true" ]; then
+            python -m analise --offline
+          else
+            python -m analise
+          fi
+
+      - name: Guardar dados baixados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dados-antt
+          path: dados/brutos
+          if-no-files-found: ignore
+
+      - name: Salvar relatório no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add saida
+          if git diff --cached --quiet; then
+            echo "Nada mudou no relatório."
+          else
+            git commit -m "Relatório atualizado em $(date +'%d/%m/%Y')"
+            git push
+          fi
