@@ -182,9 +182,9 @@ def gerar(r: dict, pasta: Path) -> Path:
     bt = r.get("backtest") or {}
     if bt.get("faixas"):
         md.append(f"### O modelo acerta? Teste às cegas em {bt['ano']}\n")
-        md.append(f"Treinado só com anos anteriores a {bt['ano']} e sem ver o resultado, o modelo acertou "
-                  f"**{pct(bt['acerto_pct'])}** das {bt['obras']} obras e detectou **{bt['atrasos_detectados']} "
-                  f"dos {bt['atrasos_reais']}** atrasos que aconteceram.\n")
+        md.append(f"Treinado só com anos anteriores a {bt['ano']} e sem ver o resultado, o modelo previu "
+                  f"{bt['obras']} obras. A tabela compara a faixa de risco prevista com o que realmente "
+                  f"aconteceu. Ele detectou {bt['atrasos_detectados']} dos {bt['atrasos_reais']} atrasos.\n")
         md.append(tabela(pd.DataFrame(bt["faixas"]), {
             "faixa": ("Previsão do modelo", lambda v: f"Risco {v.lower()}"), "obras": ("Obras", inteiro),
             "pct_atrasaram": ("Realmente atrasaram", pct),
@@ -195,8 +195,7 @@ def gerar(r: dict, pasta: Path) -> Path:
         md.append(tabela(risco.sort_values("obras_para_proximo_ano", ascending=False).head(12), {
             "concessionaria": ("Concessionária", txt),
             "obras_para_proximo_ano": (f"Obras que devem ir para {ano + 1}", lambda v: num(v, 0)),
-            "obras_no_plano": ("Obras no plano", inteiro),
-            "km_para_proximo_ano": ("Km", lambda v: num(v, 1))}))
+            "obras_no_plano": ("Obras no plano", inteiro)}))
     prox = r.get("risco_proximo")
     if prox is not None and not prox.empty:
         md.append(f"### Previsão para {int(prox['ano'].iloc[0])} (planos já publicados)\n")

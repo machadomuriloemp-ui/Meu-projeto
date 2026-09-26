@@ -423,7 +423,15 @@ header.topo { position: relative; }
     $("card-prova").hidden = false;
     $("titulo-prova").textContent = `O modelo acerta? Teste às cegas em ${b.ano}`;
     $("explica-prova").innerHTML = `O modelo foi treinado <b>só com os anos anteriores a ${b.ano}</b>. Com o que se sabia no meio de ${b.ano}, ele previu quais obras iam atrasar, <b>sem ver o resultado</b>. Depois, o código comparou sozinho com o que realmente aconteceu. Isso é feito de novo a cada atualização.`;
-    $("resumo-prova").innerHTML = `Acertou <b>${pct(b.acerto_pct)}</b> das ${nf(b.obras)} obras e detectou <b>${nf(b.atrasos_detectados)} dos ${nf(b.atrasos_reais)}</b> atrasos que aconteceram.`;
+    const baixo = b.faixas.find(f => f.faixa === "Baixo");
+    const outras = b.faixas.filter(f => f.faixa !== "Baixo");
+    const nOut = outras.reduce((a, f) => a + f.obras, 0), aOut = outras.reduce((a, f) => a + f.atrasaram, 0);
+    const pOut = nOut ? aOut / nOut * 100 : null;
+    const vezes = baixo && baixo.pct_atrasaram > 0 && pOut != null ? pOut / baixo.pct_atrasaram : null;
+    $("resumo-prova").innerHTML = (baixo && pOut != null
+      ? `Das obras que o modelo marcou como <b>risco baixo</b>, só <b>${pct(baixo.pct_atrasaram)}</b> atrasaram. Entre as de <b>risco médio ou alto</b>, <b>${pct(pOut)}</b> atrasaram${vezes && vezes >= 1.5 ? ` — <b>${nf(vezes, 1)} vezes mais</b>` : ""}.`
+      : `O modelo acertou ${pct(b.acerto_pct)} das ${nf(b.obras)} obras.`) +
+      `<br><span style="font-size:13px;color:var(--ink-2)">Limite honesto: ele detectou ${nf(b.atrasos_detectados)} dos ${nf(b.atrasos_reais)} atrasos que aconteceram (${pct(b.atrasos_detectados / b.atrasos_reais * 100)}). Com mais anos de histórico na base da ANTT, a tendência é melhorar.</span>`;
     const cores = { Alto: "var(--critical)", "Médio": "var(--warning)", Baixo: "var(--good)" };
     $("faixas-prova").innerHTML = b.faixas.map(f => `<div class="faixa">
         <div class="cab"><span class="status"><i style="background:${cores[f.faixa]}"></i>Previstas como risco ${f.faixa.toLowerCase()}</span></div>
@@ -438,14 +446,13 @@ header.topo { position: relative; }
   function heranca() {
     const ano = D.resumo.ano_referencia;
     $("titulo-heranca").textContent = `O que deve ficar para ${ano + 1}`;
-    $("explica-heranca").innerHTML = `Estimativa de quantas obras do plano de ${ano} não devem ser concluídas no prazo e vão escorregar para ${ano + 1} (soma das probabilidades de atraso de cada obra). Os km consideram só obras com extensão informada.`;
+    $("explica-heranca").innerHTML = `Estimativa de quantas obras do plano de ${ano} não devem cumprir a meta do ano e vão escorregar para ${ano + 1} (soma das probabilidades de atraso de cada obra).`;
     const lista = D.risco.filter(r => (r.obras_para_proximo_ano || 0) >= 0.5)
       .sort((a, b) => b.obras_para_proximo_ano - a.obras_para_proximo_ano).slice(0, 12);
     barras($("barras-heranca"), lista.map(r => ({
       nome: r.concessionaria, valor: r.obras_para_proximo_ano, sel: r.concessionaria === sel,
-      texto: `~${nf(r.obras_para_proximo_ano)} <small>obras${r.km_para_proximo_ano >= 1 ? ` · ${nf(r.km_para_proximo_ano)} km` : ""}</small>`,
-      dica: `<b>${esc(r.concessionaria)}</b><br>~${nf(r.obras_para_proximo_ano, 1)} de ${nf(r.obras_no_plano)} obras devem ficar para ${ano + 1}` +
-        (r.km_para_proximo_ano >= 0.1 ? `<br>~${nf(r.km_para_proximo_ano, 1)} km de obra` : ""),
+      texto: `~${nf(r.obras_para_proximo_ano)} <small>de ${nf(r.obras_no_plano)}</small>`,
+      dica: `<b>${esc(r.concessionaria)}</b><br>~${nf(r.obras_para_proximo_ano, 1)} de ${nf(r.obras_no_plano)} obras devem ficar para ${ano + 1}`,
     })), { onClick: l => selecionar(l.nome === sel ? "" : l.nome) });
   }
 
