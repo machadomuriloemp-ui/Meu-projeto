@@ -187,7 +187,9 @@ def fatores_cadastro(cad: pd.DataFrame) -> pd.DataFrame:
     cols = {"valor_contratual": "valor_contratual",
             "data_fim_prevista": "data_fim_contrato",
             "data_inicio_prevista": "data_inicio_contrato",
-            "extensao": "extensao_cadastro"}
+            "extensao": "extensao_cadastro",
+            "codigo_snv_inicial": "snv_cadastro",
+            "rodovia": "rodovia_cadastro"}
     manter = ["obra"] + [c for c in cols if c in cad]
     return cad[manter].rename(columns=cols).drop_duplicates("obra", keep="last")
 

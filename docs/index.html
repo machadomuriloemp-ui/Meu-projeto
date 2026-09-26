@@ -155,6 +155,22 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .alerta p { margin: 0; font-size: 13.5px; line-height: 1.5; }
 .alerta .tit { font-weight: 650; font-size: 13px; color: var(--ink-2); margin-bottom: 2px; }
 .contagem { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+/* Mapa em grade */
+.mapa-wrap { display: grid; gap: 16px; }
+@media (min-width: 820px) { .mapa-wrap { grid-template-columns: minmax(300px, 380px) 1fr; align-items: start; } }
+.mapa { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-width: 380px; }
+.uf { aspect-ratio: 1; border-radius: 8px; border: 0; padding: 0; font: inherit; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; line-height: 1.1; cursor: default; background: var(--surface-2); color: var(--muted); }
+.uf.dado { cursor: pointer; }
+.uf b { font-size: 12.5px; font-weight: 700; }
+.uf small { font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.uf.sel { outline: 2px solid var(--ink); outline-offset: 1px; }
+.uf.sem { background: transparent; border: 1px solid var(--grid); }
+.legenda-mapa { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--ink-2); margin: 10px 0 0; align-items: center; }
+.legenda-mapa i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; vertical-align: -3px; margin-right: 4px; }
+.detalhe-uf { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-size: 13.5px; }
+.detalhe-uf h3 { font-size: 15px; margin: 0 0 6px; }
+.detalhe-uf p { margin: 3px 0; color: var(--ink-2); }
 .ficha { border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .ficha .grande { font-size: 40px; font-weight: 700; line-height: 1.05; }
 .ficha .grande small { font-size: 15px; font-weight: 600; color: var(--ink-2); margin-left: 4px; }
@@ -265,6 +281,24 @@ header.topo { position: relative; }
       <div class="alertas" id="alertas-qualidade"></div>
       <div class="tabela" id="tabela-qualidade-wrap"><table id="tabela-qualidade"></table></div>
       <p class="eixo-nota" id="nota-qualidade"></p>
+    </section>
+
+    <section class="card largo" id="card-mapa" hidden>
+      <h2 id="titulo-mapa">Por estado e região</h2>
+      <p class="explica" id="explica-mapa"></p>
+      <div class="abas" id="abas-mapa" role="group" aria-label="Indicador do mapa"></div>
+      <div class="mapa-wrap">
+        <div>
+          <div class="mapa" id="mapa" role="group" aria-label="Mapa do Brasil em grade"></div>
+          <div class="legenda-mapa" id="legenda-mapa"></div>
+        </div>
+        <div>
+          <div class="detalhe-uf" id="detalhe-uf" hidden></div>
+          <h3 style="font-size:15px;margin:0 0 6px" id="titulo-regioes">Por região</h3>
+          <div class="barras" id="barras-regioes"></div>
+          <p class="eixo-nota" id="nota-mapa"></p>
+        </div>
+      </div>
     </section>
 
     <section class="card largo" id="card-prova" hidden>
@@ -539,6 +573,84 @@ header.topo { position: relative; }
       `${fora.length > 1 ? "Esses anos foram retirados" : "Esse ano foi retirado"} do cálculo — veja "Os dados estão completos?" abaixo.`;
   }
 
+  // ---------- mapa por estado ----------
+  const GRADE = { RR:[2,0], AP:[3,0], AM:[1,1], PA:[2,1], MA:[3,1], CE:[4,1], RN:[5,1],
+    AC:[0,2], RO:[1,2], TO:[2,2], PI:[3,2], PE:[4,2], PB:[5,2], MT:[1,3], GO:[2,3], DF:[3,3], BA:[4,3], AL:[5,3],
+    MS:[1,4], MG:[2,4], ES:[3,4], SE:[5,4], PR:[1,5], SP:[2,5], RJ:[3,5], SC:[1,6], RS:[1,7] };
+  // Escala sequencial (um só tom, claro -> escuro); o texto troca de cor conforme o fundo
+  const CLASSES = [[20, "#b7d3f6", "#0b0b0b"], [40, "#86b6ef", "#0b0b0b"], [60, "#3987e5", "#ffffff"],
+                   [80, "#1c5cab", "#ffffff"], [101, "#0d366b", "#ffffff"]];
+  const corDe = v => CLASSES.find(c => v < c[0]);
+  let indMapa = "hist", ufSel = "";
+  function mapa() {
+    const R = D.regioes;
+    if (!R || !R.por_uf) return;
+    $("card-mapa").hidden = false;
+    const ano = D.resumo.ano_referencia;
+    const inds = { hist: ["Atraso histórico", "taxa_atraso_pct", "metas_encerradas"],
+                   atual: [`Obras em risco em ${ano}`, "pct_em_risco", "obras_ano_atual"] };
+    $("abas-mapa").innerHTML = Object.entries(inds).map(([k, v]) =>
+      `<button type="button" data-k="${k}" aria-pressed="${k === indMapa}">${v[0]}</button>`).join("");
+    $("abas-mapa").querySelectorAll("button").forEach(b => b.onclick = () => { indMapa = b.dataset.k; mapa(); });
+    const [rotulo, campo, base] = inds[indMapa];
+    const linhas = sel ? ((R.por_concessionaria[sel] || {}).por_uf || []) : R.por_uf;
+    const porUf = Object.fromEntries(linhas.map(r => [r.uf, r]));
+    if (ufSel && !porUf[ufSel]) ufSel = "";
+    $("titulo-mapa").textContent = sel ? `Por estado — ${sel}` : "Por estado e região";
+    $("explica-mapa").innerHTML = (indMapa === "hist"
+      ? "Percentual das metas anuais de obras (anos encerrados) que ficaram abaixo de 90% do planejado, pelo estado onde cada obra está."
+      : `Percentual das obras do plano de ${ano} com chance de atraso de 50% ou mais, segundo o modelo.`) +
+      " A conta é <b>obra a obra</b>: concessões que passam por mais de um estado têm cada obra contada no seu estado. O investimento em R$ não entra aqui, porque a ANTT só o publica por concessionária.";
+    let html = "";
+    for (const [uf, [c, l]] of Object.entries(GRADE)) {
+      const r = porUf[uf], v = r ? r[campo] : null, n = r ? r[base] : 0;
+      const tem = v != null && n > 0;
+      const k = tem ? corDe(v) : null;
+      html += `<button type="button" class="uf${tem ? " dado" : " sem"}${uf === ufSel ? " sel" : ""}" data-uf="${uf}" style="grid-column:${c + 1};grid-row:${l + 1};${tem ? `background:${k[1]};color:${k[2]}` : ""}"` +
+        ` aria-label="${uf}: ${tem ? pct(v) : "sem dados"}"${tem ? "" : " disabled"}><b>${uf}</b><small>${tem ? pct(v) : "–"}</small></button>`;
+    }
+    $("mapa").innerHTML = html;
+    $("mapa").querySelectorAll(".uf.dado").forEach(b => {
+      b.onclick = () => { ufSel = ufSel === b.dataset.uf ? "" : b.dataset.uf; mapa(); };
+      const r = porUf[b.dataset.uf];
+      b.onmousemove = e => mostrarDica(`<b>${esc(r.nome)}</b><br>${rotulo}: <b>${pct(r[campo])}</b><br>${nf(r[base])} ${indMapa === "hist" ? "metas encerradas" : `obras no plano de ${ano}`}`, e.clientX, e.clientY);
+      b.onmouseleave = esconderDica;
+    });
+    $("legenda-mapa").innerHTML = ["0–20%", "20–40%", "40–60%", "60–80%", "80–100%"].map((t, i) =>
+      `<span><i style="background:${CLASSES[i][1]}"></i>${t}</span>`).join("") + `<span><i style="border:1px solid var(--grid)"></i>sem dados</span>`;
+
+    const d = $("detalhe-uf");
+    if (ufSel && porUf[ufSel]) {
+      const r = porUf[ufSel];
+      d.hidden = false;
+      d.innerHTML = `<h3>${esc(r.nome)} · ${esc(r.regiao)}</h3>` +
+        `<p>Atraso histórico: <b>${pct(r.taxa_atraso_pct)}</b> (${nf(r.metas_atrasadas)} de ${nf(r.metas_encerradas)} metas encerradas)${r.poucos_dados ? " — poucos dados, leia com cautela" : ""}</p>` +
+        `<p>Obras em risco em ${ano}: <b>${r.obras_ano_atual ? `${nf(r.obras_em_risco)} de ${nf(r.obras_ano_atual)} (${pct(r.pct_em_risco)})` : "sem plano no ano"}</b></p>` +
+        (sel ? "" : `<p>Concessionárias com obras no estado: ${esc((r.concessionarias || []).join(", "))}</p>`);
+    } else { d.hidden = true; }
+
+    if (sel) {
+      $("titulo-regioes").textContent = "";
+      $("barras-regioes").innerHTML = "";
+      const semUf = (R.por_concessionaria[sel] || {}).sem_uf || 0;
+      $("nota-mapa").textContent = (linhas.length ? `Estados com obras da ${sel}: ${linhas.map(r => r.uf).join(", ")}. ` : `Sem obras com estado identificado para a ${sel}. `) +
+        (semUf ? `${nf(semUf)} obra(s) sem estado identificado não entram no mapa. ` : "") + "Toque em um estado para ver os números.";
+      return;
+    }
+    $("titulo-regioes").textContent = "Por região";
+    const regs = R.por_regiao.filter(r => r[campo] != null && r[base] > 0).sort((a, b) => b[campo] - a[campo]);
+    barras($("barras-regioes"), regs.map(r => ({
+      nome: r.regiao, valor: r[campo], texto: `${pct(r[campo])} <small>${nf(r[base])} ${indMapa === "hist" ? "metas" : "obras"}</small>`,
+      cor: corDe(r[campo])[1],
+      dica: `<b>${esc(r.regiao)}</b><br>${rotulo}: <b>${pct(r[campo])}</b><br>Estados com dados: ${esc((r.ufs_com_dados || []).join(", "))}<br>${nf((r.concessionarias || []).length)} concessionária(s)`,
+    })), { max: 100 });
+    const semRegiao = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"].filter(g => !regs.some(r => r.regiao === g));
+    const semUf = indMapa === "hist" ? R.sem_uf_hist : R.sem_uf_atual, total = indMapa === "hist" ? R.total_hist : R.total_atual;
+    $("nota-mapa").innerHTML = (semRegiao.length ? `<b>Sem dados</b> nas bases da ANTT para: ${semRegiao.join(", ")} (não significa ausência de atraso). ` : "") +
+      `${nf(total - semUf)} de ${nf(total)} ${indMapa === "hist" ? "metas" : "obras"} com estado identificado (pelo sufixo da rodovia, rodovia estadual, código SNV ou concessionária de um só estado)${semUf ? `; ${nf(semUf)} ficaram de fora` : ""}. ` +
+      "Estados com menos de 10 metas encerradas devem ser lidos com cautela. Toque em um estado para ver os números.";
+  }
+
   // ---------- prova de acerto (teste às cegas) ----------
   const CORES_FAIXA = { Alto: "var(--critical)", "Médio": "var(--warning)", Baixo: "var(--good)" };
   function cartoesFaixas(faixas) {
@@ -780,7 +892,7 @@ header.topo { position: relative; }
     $("sel-conc").value = c; $("limpar").hidden = !c;
     const url = new URL(location); c ? url.searchParams.set("c", c) : url.searchParams.delete("c");
     history.replaceState(null, "", url);
-    kpis(); risco(); avisoRisco(); qualidade(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
+    kpis(); risco(); avisoRisco(); mapa(); qualidade(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
     if (c) document.querySelector(".kpis").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

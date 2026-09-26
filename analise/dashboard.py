@@ -145,6 +145,23 @@ def _resumo_concessionarias(obras: pd.DataFrame) -> dict:
     return res
 
 
+COLS_REGIAO = ["metas_encerradas", "metas_atrasadas", "taxa_atraso_pct", "obras_ano_atual", "obras_em_risco",
+               "pct_em_risco", "chance_media_pct", "concessionarias", "poucos_dados"]
+
+
+def _regioes(rg: dict | None) -> dict:
+    if not rg:
+        return {}
+    return {
+        "por_uf": _linhas(rg["por_uf"], ["uf", "nome", "regiao"] + COLS_REGIAO),
+        "por_regiao": _linhas(rg["por_regiao"], ["regiao", "ufs_com_dados"] + COLS_REGIAO),
+        "por_concessionaria": {c: {"por_uf": _linhas(v["por_uf"], ["uf", "nome", "regiao"] + COLS_REGIAO),
+                                   "sem_uf": v["sem_uf"]} for c, v in rg["por_concessionaria"].items()},
+        "sem_uf_hist": rg["sem_uf_hist"], "sem_uf_atual": rg["sem_uf_atual"],
+        "total_hist": rg["total_hist"], "total_atual": rg["total_atual"], "origem_uf": rg["origem_uf"],
+    }
+
+
 def exportar(r: dict, destino: Path) -> Path:
     destino.parent.mkdir(parents=True, exist_ok=True)
     m = r.get("metricas", {})
@@ -188,6 +205,7 @@ def exportar(r: dict, destino: Path) -> Path:
         "tipos": _linhas(r["motivos_tipo"].head(12) if not r["motivos_tipo"].empty else r["motivos_tipo"],
                          ["tipo", "obras", "taxa_atraso_pct"]),
         "por_concessionaria": _resumo_concessionarias(obras),
+        "regioes": _regioes(r.get("regioes")),
         "qualidade": _linhas(r.get("qualidade"), [
             "concessionaria", "ano", "status", "rotulo", "nivel", "excluido_das_metricas",
             "investimento_rs", "obras_planejadas", "obras_acompanhadas", "obras_com_execucao",

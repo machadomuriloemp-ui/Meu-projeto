@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import (baixar, carregar, config, cumprimento, dashboard, impacto, modelo, motivos, obras,
-               qualidade, relatorio)
+               qualidade, regiao, relatorio)
 
 
 def executar(offline: bool = False, pasta_dados: Path | None = None,
@@ -88,6 +88,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
         if not futuras.empty:
             risco_proximo = modelo.risco_concessionarias(futuras, tabela, hoje=hoje)
     backtest = modelo.resumo_backtest(m.backtest)
+    regioes = regiao.resumo(tabela, previsoes, risco)
     print(f"  {m.metricas}")
 
     print("== 5/5 Impacto e relatório")
@@ -105,7 +106,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
         "importancia": m.importancia(), "metricas": m.metricas, "previsoes": previsoes,
         "risco": risco, "impacto": imp, "impacto_ano": imp_ano, "inexecucao": inex,
         "obras": tabela, "info_dados": info, "risco_proximo": risco_proximo, "backtest": backtest,
-        "qualidade": qual, "sem_par_investimentos": sem_par_invest,
+        "qualidade": qual, "sem_par_investimentos": sem_par_invest, "regioes": regioes,
     }
     destino = relatorio.gerar(resultado, pasta_saida)
     print(f"Relatório: {destino}")

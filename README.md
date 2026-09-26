@@ -70,6 +70,10 @@ flowchart LR
   ano (base de investimentos) é comparado com a execução física informada nas obras. Investimento
   declarado sem execução informada indica falta de preenchimento: o ano é sinalizado no painel e
   fica fora do cálculo de atraso e do modelo.
+- **Recorte por estado e região, obra a obra.** O estado de cada obra vem da rodovia ("BR-381/MG"),
+  da rodovia estadual, do código SNV do cadastro ou da concessionária de um só estado; o que não
+  se encaixa fica de fora, sem palpite. Concessões em mais de um estado têm cada obra contada no
+  seu lugar. O investimento em R$ não é dividido por estado, porque a ANTT só o publica por concessionária.
 - **Teste às cegas no painel.** A cada atualização, o código treina o modelo só com os anos
   anteriores, prevê o último ano encerrado sem ver o resultado e mostra no painel quanto acertou,
   por faixa de risco e por concessionária.
