@@ -55,12 +55,16 @@ def test_apelidos_conferidos():
     assert qualidade.chave_nome("ECOVIAS RIOMINAS") == qualidade.chave_nome("ECOVIAS RIO MINAS")
     assert qualidade.chave_nome("ECOVIASPONTE") == qualidade.chave_nome("ECOVIAS PONTE")
     assert qualidade.chave_nome("Ecovias Minas Goiás") == qualidade.chave_nome("ECOVIAS MINAS GOIAS")
-    inv = pd.DataFrame({"concessionaria": ["EPR LITORAL PIONEIRO", "VIA DOS CRISTAIS", "ROTA VERDE", "PR VIAS"],
-                        "ano": [2025] * 4, "investimento_rs": [1.0, 2.0, 3.0, 4.0]})
+    inv = pd.DataFrame({"concessionaria": ["EPR LITORAL PIONEIRO", "VIA DOS CRISTAIS", "ROTA VERDE", "PR VIAS",
+                                           "ECOVIAS 101", "MSVIA", "CRO", "CONCESSIONÁRIA DESCONHECIDA"],
+                        "ano": [2025] * 8, "investimento_rs": [float(i) for i in range(1, 9)]})
     ligado, sem_par = qualidade.investimentos_por_nome(
-        inv, ["LITORAL PIONEIRO", "VIA CRISTAIS", "ROTA VERDE GOIÁS", "MOTIVA PARANÁ"])
-    assert set(ligado["concessionaria"]) == {"LITORAL PIONEIRO", "VIA CRISTAIS", "ROTA VERDE GOIÁS"}
-    assert sem_par == ["PR VIAS"]   # não liga por palpite
+        inv, ["LITORAL PIONEIRO", "VIA CRISTAIS", "ROTA VERDE GOIÁS", "MOTIVA PARANÁ",
+              "ECOVIAS CAPIXABA", "PANTANAL", "NOVA ROTA DO OESTE"])
+    assert set(ligado["concessionaria"]) == {"LITORAL PIONEIRO", "VIA CRISTAIS", "ROTA VERDE GOIÁS",
+                                             "MOTIVA PARANÁ", "ECOVIAS CAPIXABA", "PANTANAL",
+                                             "NOVA ROTA DO OESTE"}
+    assert sem_par == ["CONCESSIONÁRIA DESCONHECIDA"]   # nome não conferido não é ligado por palpite
 
 
 def test_investimento_sem_acompanhamento():

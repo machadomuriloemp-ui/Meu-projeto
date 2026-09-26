@@ -24,12 +24,17 @@ import pandas as pd
 from .carregar import MESES
 from .cumprimento import chave_obra
 
-# Mesma concessionária com grafias diferentes entre as bases (conferidas uma a uma).
+# Mesma concessionária com grafias ou nomes diferentes entre as bases, conferidos um a
+# um pela rodovia e pelas páginas da ANTT (em nenhum ano os dois nomes aparecem juntos).
 # Chave = nome na base de investimentos, normalizado; valor = nome nas demais bases.
 APELIDOS = {
     "EPRLITORALPIONEIRO": "LITORALPIONEIRO",
     "VIADOSCRISTAIS": "VIACRISTAIS",
     "ROTAVERDE": "ROTAVERDEGOIAS",
+    "ECOVIAS101": "ECOVIASCAPIXABA",   # BR-101/ES/BA (Eco101), renomeada em 2025
+    "MSVIA": "PANTANAL",               # BR-163/MS (CCR MSVia -> Motiva Pantanal)
+    "PRVIAS": "MOTIVAPARANA",          # BR-369/373/376 e PR-090/170/323/445 (PRVias -> Motiva Paraná)
+    "CRO": "NOVAROTADOOESTE",          # BR-163/MT (Rota do Oeste -> Nova Rota do Oeste)
 }
 
 STATUS = {
