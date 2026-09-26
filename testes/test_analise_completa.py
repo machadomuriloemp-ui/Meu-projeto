@@ -77,3 +77,25 @@ def test_impacto(resultado_simulado):
     assert imp.loc["VIA SUL", "km_nao_entregues"] > 0
     assert imp.loc["VIA SUL", "fator_d_total_pct"] > 0      # veio da base de inexecução
     assert pd.isna(imp.loc["RIOSP", "fator_d_total_pct"])   # RIOSP não está na inexecução
+
+
+def test_dados_do_dashboard(resultado_simulado):
+    """O painel web lê docs/dados.json; ele precisa ter tudo que a página usa."""
+    import json
+    d = json.loads((resultado_simulado["_saida"] / "docs" / "dados.json").read_text(encoding="utf-8"))
+    for chave in ["gerado_em", "resumo", "modelo", "risco", "tendencia", "serie", "fatores",
+                  "tipos", "motivos_concessionaria", "impacto", "obras"]:
+        assert chave in d, chave
+    assert d["resumo"]["concessionarias"] == 4
+    assert d["resumo"]["ano_referencia"] == 2026
+    assert d["risco"][0]["concessionaria"] == "VIA SUL"
+    assert set(d["serie"]["por_concessionaria"]) == {"VIA SUL", "VIA COSTEIRA", "RIOSP", "WAY 262"}
+    assert all(0 <= o["prob"] <= 100 for o in d["obras"])
+    assert "NaN" not in json.dumps(d)          # JSON válido para o navegador
+
+
+def test_pagina_do_dashboard_existe():
+    from pathlib import Path
+    html = (Path(__file__).resolve().parent.parent / "docs" / "index.html").read_text(encoding="utf-8")
+    assert 'fetch("dados.json"' in html
+    assert "<script src=" not in html            # sem dependências externas

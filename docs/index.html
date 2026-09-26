@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concessões rodoviárias — quem cumpre o planejado?</title>
+<meta name="description" content="Dashboard com dados abertos da ANTT: cumprimento do planejado, risco de atraso previsto por machine learning, motivos e impacto nas concessões rodoviárias federais.">
+<meta property="og:title" content="Concessões rodoviárias: quem cumpre o que planeja?">
+<meta property="og:description" content="Dados abertos da ANTT + Python + Machine Learning: risco de atraso, motivos e impacto por concessionária.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232a78d6'/><path d='M9 26 L14 6 M23 26 L18 6' stroke='white' stroke-width='2.5' stroke-linecap='round'/><path d='M16 9v3M16 16v3M16 23v2' stroke='%23fab219' stroke-width='2.5' stroke-linecap='round'/></svg>">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --accent: #2a78d6;
+  --accent-soft: #cde2fb;
+  --series-1: #2a78d6;
+  --series-ref: #898781;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --good-ink: #006300;
+  --shadow: 0 1px 2px rgba(11,11,11,.04), 0 4px 16px rgba(11,11,11,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
+    --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --accent: #3987e5; --accent-soft: #1c3a5e; --series-1: #3987e5;
+    --good-ink: #0ca30c; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
+  --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --accent: #3987e5; --accent-soft: #1c3a5e; --series-1: #3987e5;
+  --good-ink: #0ca30c; --shadow: none;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a { color: var(--accent); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+
+/* Cabeçalho */
+header.topo { padding: 28px 0 8px; }
+.kicker { padding-right: 56px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 8px; }
+h1 { font-size: clamp(26px, 6vw, 40px); line-height: 1.12; margin: 0 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+.sub { color: var(--ink-2); margin: 0 0 14px; max-width: 720px; text-wrap: pretty; }
+.meta { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid var(--border);
+  background: var(--surface); color: var(--ink); cursor: pointer;
+}
+.btn.primario { background: var(--ink); color: var(--page); border-color: transparent; }
+.btn svg { width: 16px; height: 16px; }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin: 20px 0; }
+@media (min-width: 820px) { .kpis { grid-template-columns: repeat(5, minmax(0,1fr)); } }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
+.kpi .rotulo { font-size: 12.5px; color: var(--ink-2); margin: 0 0 4px; }
+.kpi .valor { font-size: 26px; font-weight: 650; margin: 0; line-height: 1.15; }
+.kpi .nota { font-size: 12px; color: var(--muted); margin: 4px 0 0; }
+.kpi.destaque { grid-column: span 2; }
+@media (min-width: 820px) { .kpi.destaque { grid-column: auto; } }
+
+/* Filtro fixo */
+.filtro {
+  position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border); margin: 0 -16px; padding: 10px 16px;
+}
+.filtro .linha { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.filtro label { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+select, input[type=search] {
+  font: inherit; font-size: 15px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; min-width: 0;
+}
+select { flex: 1 1 220px; max-width: 360px; }
+.limpar { font-size: 13px; background: none; border: none; color: var(--accent); cursor: pointer; padding: 6px; font-weight: 600; }
+
+/* Cards */
+main { display: grid; gap: 14px; padding: 16px 0 8px; }
+@media (min-width: 960px) { main { grid-template-columns: 1fr 1fr; } .largo { grid-column: 1 / -1; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px 16px; box-shadow: var(--shadow); min-width: 0; }
+.card h2 { font-size: 18px; margin: 0 0 4px; line-height: 1.3; }
+.card .explica { color: var(--ink-2); font-size: 13.5px; margin: 0 0 14px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Barras horizontais (HTML) */
+.barras { display: grid; gap: 2px; }
+.barra {
+  display: grid; grid-template-columns: minmax(96px, 34%) 1fr auto; align-items: center; gap: 10px;
+  padding: 5px 6px; border-radius: 8px; cursor: default; border: 0; background: none; color: inherit;
+  font: inherit; text-align: left; width: 100%;
+}
+.barra.clicavel { cursor: pointer; }
+.barra.clicavel:hover, .barra:focus-visible { background: var(--surface-2); outline: none; }
+.barra.sel { background: var(--accent-soft); }
+.barra .nome { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra .trilho { position: relative; height: 16px; }
+.barra .preench { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--series-1); min-width: 2px; }
+.barra .ref { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ink-2); }
+.barra .val { font-size: 13px; color: var(--ink); white-space: nowrap; text-align: right; min-width: 64px; }
+.barra .val small { color: var(--ink-2); }
+/* Rótulos longos: nome em cima, barra embaixo */
+.barras.empilhado .barra { grid-template-columns: 1fr auto; row-gap: 3px; padding: 6px; }
+.barras.empilhado .nome { grid-column: 1 / -1; white-space: normal; font-size: 13px; color: var(--ink); }
+.eixo-nota { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+
+.status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.status i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.legenda { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 0 10px; }
+
+/* Linha */
+.grafico { position: relative; }
+.grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grafico text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 0; }
+.stat { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+.stat b { display: block; font-size: 17px; line-height: 1.25; }
+.stat span { font-size: 12px; color: var(--ink-2); }
+.pilula { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--surface-2); color: var(--ink); }
+
+/* Dica flutuante */
+.dica {
+  position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--page);
+  font-size: 12.5px; line-height: 1.45; padding: 8px 10px; border-radius: 8px; max-width: 260px;
+  opacity: 0; transition: opacity .12s; box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+.dica b { font-weight: 650; }
+
+/* Obras */
+.busca { display: flex; gap: 8px; margin: 0 0 10px; }
+.busca input { flex: 1; }
+.obras { display: grid; gap: 8px; }
+.obra { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: grid; grid-template-columns: 58px 1fr; gap: 10px; align-items: start; }
+.obra .prob { font-size: 15px; font-weight: 700; text-align: center; border-radius: 10px; padding: 6px 0; background: var(--surface-2); }
+.obra .titulo { font-size: 14px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.obra .onde { font-size: 12.5px; color: var(--ink-2); margin: 2px 0 6px; }
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip { font-size: 11.5px; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); }
+.mais { margin-top: 10px; }
+
+/* Tabela */
+.tabela { overflow-x: auto; margin: 0 -4px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; white-space: normal; vertical-align: bottom; min-width: 64px; }
+tr.sel td { background: var(--accent-soft); }
+
+/* Como funciona */
+.passos { counter-reset: p; display: grid; gap: 10px; margin: 0 0 16px; padding: 0; list-style: none; }
+@media (min-width: 820px) { .passos { grid-template-columns: repeat(3, 1fr); } }
+.passos li { counter-increment: p; background: var(--surface-2); border-radius: 12px; padding: 12px 12px 12px 48px; position: relative; }
+.passos li::before { content: counter(p); position: absolute; left: 12px; top: 12px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+.passos b { display: block; font-size: 14px; }
+.passos span { font-size: 13px; color: var(--ink-2); }
+.tech { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; }
+.tech span { font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); }
+.card ul.limites { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; }
+footer { color: var(--muted); font-size: 12.5px; padding: 20px 0 40px; text-align: center; }
+.vazio { color: var(--muted); font-size: 13.5px; padding: 12px 0; }
+.tema { position: absolute; right: 16px; top: 16px; }
+header.topo { position: relative; }
+@media print { .filtro, .tema, .botoes { display: none; } .card { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topo">
+    <button class="btn tema" id="tema" aria-label="Alternar tema claro/escuro" title="Tema claro/escuro">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <p class="kicker">Projeto de portfólio · Ciência de dados</p>
+    <h1>Concessões rodoviárias: quem cumpre o que planeja?</h1>
+    <p class="sub">Com os dados abertos da ANTT, este painel mede se as concessionárias de rodovias federais executam as obras no ritmo planejado, <b>prevê quem tende a atrasar</b> com machine learning e mostra os <b>motivos</b> e o <b>impacto</b> dos atrasos.</p>
+    <p class="meta" id="meta">Carregando dados…</p>
+    <div class="botoes">
+      <a class="btn primario" id="link-github" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5z"/></svg>
+        Ver o código
+      </a>
+      <a class="btn" href="#como">Como funciona</a>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Indicadores principais"></section>
+
+  <div class="filtro">
+    <div class="linha">
+      <label for="sel-conc">Concessionária</label>
+      <select id="sel-conc"><option value="">Todas</option></select>
+      <button class="limpar" id="limpar" hidden>Limpar filtro</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="card largo" id="card-risco">
+      <h2 id="titulo-risco">Quem tende a atrasar</h2>
+      <p class="explica">Chance de a concessionária executar <b>menos de 90%</b> do que planejou para o ano, calculada pelo modelo a partir do risco de cada obra. Toque em uma barra para filtrar o painel.</p>
+      <div class="legenda" id="legenda-risco"></div>
+      <div class="barras" id="barras-risco"></div>
+    </section>
+
+    <section class="card largo">
+      <h2 id="titulo-linha">Cumprimento mês a mês</h2>
+      <p class="explica">Executado ÷ previsto em cada mês (média móvel de 3 meses; limitado a 150%). Acima da linha de 90%, o mês foi cumprido.</p>
+      <div class="grafico" id="grafico-linha"></div>
+      <div class="stats" id="stats-linha"></div>
+    </section>
+
+    <section class="card">
+      <h2>Por que as obras atrasam?</h2>
+      <p class="explica">Quantas vezes cada fator aumenta a chance de uma obra atrasar, comparado à média (1× = neutro). Base: obras de anos já encerrados.</p>
+      <div class="barras empilhado" id="barras-fatores"></div>
+      <p class="eixo-nota" id="motivos-conc"></p>
+    </section>
+
+    <section class="card">
+      <h2>Tipos de obra que mais atrasam</h2>
+      <p class="explica">Percentual de obras de cada tipo que executaram menos de 90% do previsto no ano.</p>
+      <div class="barras empilhado" id="barras-tipos"></div>
+    </section>
+
+    <section class="card largo">
+      <h2 id="titulo-obras">Obras com maior chance de atraso</h2>
+      <p class="explica">Previsão do modelo para as obras do ano atual, com os fatores que mais pesaram em cada uma.</p>
+      <div class="busca"><input type="search" id="busca" placeholder="Buscar obra, rodovia ou tipo…" aria-label="Buscar obra"></div>
+      <div class="obras" id="lista-obras"></div>
+      <button class="btn mais" id="mais-obras" hidden>Mostrar mais</button>
+    </section>
+
+    <section class="card largo">
+      <h2>Impacto dos atrasos (anos encerrados)</h2>
+      <p class="explica">O que deixou de ser entregue: km (déficit × extensão da obra), postergação média do término e registros oficiais de inexecução e Fator D (desconto na tarifa).</p>
+      <div class="tabela"><table id="tabela-impacto"></table></div>
+    </section>
+
+    <section class="card largo" id="como">
+      <h2>Como funciona</h2>
+      <p class="explica">Um pipeline em Python que roda sozinho todo mês no GitHub Actions e atualiza este painel.</p>
+      <ol class="passos">
+        <li><b>Coleta</b><span>Busca as bases na API de dados abertos da ANTT (CKAN), com plano B se o portal cair.</span></li>
+        <li><b>Tratamento (ETL)</b><span>Padroniza colunas, "55,7%", "1.234,56", datas e acentos com pandas.</span></li>
+        <li><b>Métricas</b><span>Previsto × executado por mês e ano; tendência robusta (Theil-Sen + Kendall).</span></li>
+        <li><b>Machine learning</b><span id="passo-ml">Compara regressão logística e gradient boosting (scikit-learn) e escolhe o melhor.</span></li>
+        <li><b>Simulação</b><span>Monte Carlo com 5.000 cenários para o risco de cada concessionária.</span></li>
+        <li><b>Testes e automação</b><span>Testes automatizados (pytest) e CI/CD no GitHub Actions; o painel é publicado no GitHub Pages.</span></li>
+      </ol>
+      <div class="tech" aria-label="Tecnologias">
+        <span>Python</span><span>pandas</span><span>scikit-learn</span><span>SciPy</span><span>pytest</span>
+        <span>GitHub Actions</span><span>GitHub Pages</span><span>API REST</span><span>HTML/CSS/JS + SVG</span>
+      </div>
+      <p class="explica" id="qualidade"></p>
+      <ul class="limites">
+        <li>Os dados são preenchidos pelas próprias concessionárias no sistema SIGICOR; nem todas as concessões estão lá e alguns campos vêm vazios.</li>
+        <li>Os motivos são associações estatísticas e registros das bases, não prova de causa.</li>
+        <li>Nos anos passados, o modelo só usa informações que existiam no mesmo ponto do ano; revisões feitas depois do atraso não entram.</li>
+      </ul>
+    </section>
+  </main>
+  <footer id="rodape">Fonte: Portal de Dados Abertos da ANTT · Projeto de estudo, sem vínculo com a ANTT.</footer>
+</div>
+<div class="dica" id="dica" role="tooltip"></div>
+
+<script>
+(() => {
+  const REPO = "https://github.com/machadomuriloemp-ui/Meu-projeto";
+  const CORES = { Alto: "var(--critical)", "Médio": "var(--warning)", Baixo: "var(--good)" };
+  const nf = (v, c = 0) => v == null ? "–" : v.toLocaleString("pt-BR", { minimumFractionDigits: c, maximumFractionDigits: c });
+  const pct = (v, c = 0) => v == null ? "–" : nf(v, c) + "%";
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const $ = id => document.getElementById(id);
+  let D = null, sel = "", limiteObras = 12;
+
+  // ---------- tema ----------
+  $("tema").onclick = () => {
+    const raiz = document.documentElement;
+    const escuro = raiz.dataset.theme ? raiz.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    raiz.dataset.theme = escuro ? "light" : "dark";
+    if (D) desenharLinha();
+  };
+
+  // ---------- dica ----------
+  const dica = $("dica");
+  function mostrarDica(html, x, y) {
+    dica.innerHTML = html; dica.style.opacity = 1;
+    const r = dica.getBoundingClientRect();
+    let left = Math.min(Math.max(8, x + 12), innerWidth - r.width - 8);
+    let top = y - r.height - 12; if (top < 8) top = y + 16;
+    dica.style.left = left + "px"; dica.style.top = top + "px";
+  }
+  const esconderDica = () => { dica.style.opacity = 0; };
+  addEventListener("scroll", esconderDica, { passive: true });
+
+  // ---------- barras genéricas ----------
+  function barras(el, linhas, o) {
+    const max = o.max ?? Math.max(...linhas.map(l => l.valor), 1);
+    el.innerHTML = "";
+    if (!linhas.length) { el.innerHTML = '<p class="vazio">Sem dados suficientes.</p>'; return; }
+    linhas.forEach(l => {
+      const b = document.createElement(o.onClick ? "button" : "div");
+      b.className = "barra" + (o.onClick ? " clicavel" : "") + (l.sel ? " sel" : "");
+      const w = Math.max(0, Math.min(100, l.valor / max * 100));
+      const ref = o.ref != null ? `<span class="ref" style="left:${o.ref / max * 100}%"></span>` : "";
+      b.innerHTML = `<span class="nome" title="${esc(l.nome)}">${esc(l.nome)}</span>
+        <span class="trilho">${ref}<span class="preench" style="width:${w}%;background:${l.cor || "var(--series-1)"}"></span></span>
+        <span class="val num">${l.texto}</span>`;
+      if (o.onClick) { b.onclick = () => o.onClick(l); b.setAttribute("aria-pressed", l.sel ? "true" : "false"); }
+      if (l.dica) {
+        b.onmousemove = e => mostrarDica(l.dica, e.clientX, e.clientY);
+        b.onmouseleave = esconderDica;
+      }
+      el.appendChild(b);
+    });
+  }
+
+  // ---------- KPIs ----------
+  function kpis() {
+    const r = D.resumo, m = D.modelo;
+    const auc = m.auc_teste ?? m.auc_cv;
+    const itens = [
+      ["Concessionárias analisadas", nf(r.concessionarias), `${r.anos[0]}–${r.anos[1]}`],
+      ["Obras acompanhadas", nf(r.obras), "itens de investimento do contrato"],
+      ["Obras que atrasaram", pct(r.taxa_atraso_historica_pct), `de ${nf(r.obras_ano_historico)} metas anuais já encerradas`],
+      [`Risco alto em ${r.ano_referencia ?? "–"}`, `${nf(r.risco_alto)} de ${nf(D.risco.length)}`, "concessionárias com ≥ 66% de chance de não cumprir"],
+      ["Acerto do modelo (AUC)", auc == null ? "–" : nf(auc, 2),
+        m.auc_teste != null ? `testado em ${m.ano_teste}, ano que o modelo não viu` : "validação cruzada"],
+    ];
+    $("kpis").innerHTML = itens.map((k, i) =>
+      `<div class="kpi${i === 4 ? " destaque" : ""}"><p class="rotulo">${k[0]}</p><p class="valor">${k[1]}</p><p class="nota">${k[2]}</p></div>`).join("");
+    $("meta").textContent = `Atualizado em ${new Date(D.gerado_em.replace(" ", "T")).toLocaleDateString("pt-BR")} · Fonte: ${D.fonte}`;
+    const cmp = Object.entries(m.comparacao || {}).map(([k, v]) => `${k} ${nf(v, 2)}`).join(" × ");
+    $("qualidade").innerHTML = `<b>Qualidade do modelo:</b> ${esc(m.nome)}${cmp ? ` (AUC na validação cruzada: ${cmp})` : ""}` +
+      (m.auc_teste != null ? `. Treinado só com anos anteriores e testado em ${m.ano_teste}, acertou com AUC ${nf(m.auc_teste, 2)} (0,5 = acaso; 0,7 = razoável; 0,8+ = bom).` : ".") +
+      ` Base de treino: ${nf(m.obras_treino)} metas anuais de obras.`;
+  }
+
+  // ---------- risco ----------
+  function risco() {
+    const ano = D.resumo.ano_referencia;
+    $("titulo-risco").textContent = `Quem tende a atrasar em ${ano}`;
+    $("legenda-risco").innerHTML = ["Alto", "Médio", "Baixo"].map(f =>
+      `<span class="status"><i style="background:${CORES[f]}"></i>Risco ${f.toLowerCase()}</span>`).join("");
+    barras($("barras-risco"), D.risco.map(r => ({
+      nome: r.concessionaria, valor: r.prob_nao_cumprir_plano_pct, cor: CORES[r.risco], sel: r.concessionaria === sel,
+      texto: `${pct(r.prob_nao_cumprir_plano_pct)} <small>${r.risco}${r.ano !== ano ? ` · ${r.ano}` : ""}</small>`,
+      dica: `<b>${esc(r.concessionaria)}</b> · ${r.ano}<br>Chance de não cumprir: <b>${pct(r.prob_nao_cumprir_plano_pct)}</b><br>` +
+        `Cumprimento esperado: ${pct(r.cumprimento_esperado_pct)} (faixa ${esc(r.cumprimento_p10_p90)})<br>` +
+        `Obras em risco: ${nf(r.obras_em_risco)} de ${nf(r.obras_no_plano)}`,
+    })), { max: 100, onClick: l => selecionar(l.nome === sel ? "" : l.nome) });
+  }
+
+  // ---------- linha ----------
+  function mediaMovel(v, n = 3) {
+    return v.map((_, i) => {
+      const j = v.slice(Math.max(0, i - n + 1), i + 1).filter(x => x != null);
+      return j.length ? j.reduce((a, b) => a + b, 0) / j.length : null;
+    });
+  }
+  function desenharLinha() {
+    const el = $("grafico-linha");
+    const pontos = sel ? (D.serie.por_concessionaria[sel] || []) : D.serie.geral;
+    $("titulo-linha").textContent = sel ? `Cumprimento mês a mês — ${sel}` : "Cumprimento mês a mês — todas as concessionárias";
+    const stats = $("stats-linha");
+    if (pontos.length < 2) { el.innerHTML = '<p class="vazio">Sem histórico mensal suficiente.</p>'; stats.innerHTML = ""; return; }
+    const ys = mediaMovel(pontos.map(p => p.indice));
+    const W = Math.max(300, el.clientWidth || 600), H = W < 520 ? 220 : 260;
+    const m = { t: 14, r: 12, b: 26, l: 36 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const x = i => m.l + (pontos.length === 1 ? iw / 2 : i / (pontos.length - 1) * iw);
+    const y = v => m.t + ih - Math.min(150, Math.max(0, v)) / 150 * ih;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Índice de cumprimento mensal">`;
+    [0, 50, 100, 150].forEach(t => {
+      s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/>` +
+        `<text x="${m.l - 6}" y="${y(t) + 4}" text-anchor="end">${t}%</text>`;
+    });
+    s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(D.tolerancia_pct)}" y2="${y(D.tolerancia_pct)}" stroke="var(--ink-2)" stroke-width="1"/>` +
+      `<text x="${W - m.r}" y="${y(D.tolerancia_pct) - 5}" text-anchor="end" style="fill:var(--ink-2)">meta 90%</text>`;
+    const passo = Math.max(1, Math.ceil(pontos.length / (W < 520 ? 4 : 8)));
+    pontos.forEach((p, i) => {
+      const ultimo = i === pontos.length - 1;
+      if ((i % passo === 0 && (ultimo || pontos.length - 1 - i >= passo * 0.6)) || ultimo)
+        s += `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === pontos.length - 1 ? "end" : "middle"}">${p.periodo.replace("-M", "/")}</text>`;
+    });
+    let d = "", aberto = false;
+    ys.forEach((v, i) => { if (v == null) { aberto = false; return; } d += (aberto ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1); aberto = true; });
+    const area = d ? d + `L${x(ys.length - 1)} ${y(0)}L${x(ys.findIndex(v => v != null))} ${y(0)}Z` : "";
+    s += `<path d="${area}" fill="var(--series-1)" opacity=".10"/>`;
+    s += `<path d="${d}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const u = ys.length - 1;
+    if (ys[u] != null) s += `<circle cx="${x(u)}" cy="${y(ys[u])}" r="4.5" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2"/>`;
+    s += `<line id="mira" y1="${m.t}" y2="${m.t + ih}" stroke="var(--axis)" stroke-width="1" visibility="hidden"/>`;
+    s += `<circle id="mira-ponto" r="4.5" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`;
+    s += `<rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="alvo"/></svg>`;
+    el.innerHTML = s;
+    const svg = el.querySelector("svg"), mira = svg.querySelector("#mira"), mp = svg.querySelector("#mira-ponto");
+    const mover = e => {
+      const pt = e.touches ? e.touches[0] : e;
+      const r = svg.getBoundingClientRect(), px = (pt.clientX - r.left) / r.width * W;
+      const i = Math.max(0, Math.min(pontos.length - 1, Math.round((px - m.l) / iw * (pontos.length - 1))));
+      const p = pontos[i];
+      mira.setAttribute("x1", x(i)); mira.setAttribute("x2", x(i)); mira.setAttribute("visibility", "visible");
+      if (ys[i] != null) { mp.setAttribute("cx", x(i)); mp.setAttribute("cy", y(ys[i])); mp.setAttribute("visibility", "visible"); }
+      mostrarDica(`<b>${p.periodo.replace("-M", " · mês ")}</b><br>Média móvel: <b>${pct(ys[i])}</b><br>No mês: ${pct(p.indice)}<br>` +
+        `Previsto ${nf(p.previsto, 1)} pp · executado ${nf(p.executado, 1)} pp`, pt.clientX, pt.clientY);
+    };
+    const sair = () => { mira.setAttribute("visibility", "hidden"); mp.setAttribute("visibility", "hidden"); esconderDica(); };
+    const alvo = svg.querySelector("#alvo");
+    alvo.addEventListener("mousemove", mover); alvo.addEventListener("mouseleave", sair);
+    alvo.addEventListener("touchstart", mover, { passive: true }); alvo.addEventListener("touchmove", mover, { passive: true });
+    alvo.addEventListener("touchend", sair);
+
+    const t = sel ? D.tendencia.find(r => r.concessionaria === sel) : null;
+    const media = t ? t.cumprimento_medio : pontos.reduce((a, p) => a + (p.indice ?? 0), 0) / pontos.length;
+    const ult6 = t ? t.cumprimento_ult_6m : pontos.slice(-6).reduce((a, p) => a + (p.indice ?? 0), 0) / Math.min(6, pontos.length);
+    const ic = { Melhorando: "↗", Piorando: "↘", "Estável": "→" };
+    const npior = D.tendencia.filter(r => r.tendencia === "Piorando").length;
+    const tend = t ? `${ic[t.tendencia] || "·"} ${t.tendencia}` : `${npior} de ${D.tendencia.length}`;
+    stats.innerHTML = `<div class="stat"><b class="num">${pct(media)}</b><span>cumprimento médio</span></div>` +
+      `<div class="stat"><b class="num">${pct(ult6)}</b><span>últimos 6 meses</span></div>` +
+      `<div class="stat"><b>${tend}</b><span>${t ? "tendência" : "concessionárias piorando"}</span></div>`;
+  }
+
+  // ---------- fatores e tipos ----------
+  function fatores() {
+    const f = D.fatores.slice(0, 8);
+    const max = Math.max(2, ...f.map(r => r.lift || 0));
+    barras($("barras-fatores"), f.map(r => ({
+      nome: r.fator, valor: r.lift || 0,
+      cor: (r.lift || 0) > 1 ? "var(--series-1)" : "var(--muted)",
+      texto: `${nf(r.lift, 1)}×`,
+      dica: `<b>${esc(r.fator)}</b><br>Atrasam com o fator: ${pct(r.taxa_atraso_com_fator_pct)}<br>Sem o fator: ${pct(r.taxa_atraso_sem_fator_pct)}<br>${nf(r.obras_com_fator)} obras com o fator`,
+    })), { max, ref: 1 });
+    const mc = sel && D.motivos_concessionaria.find(r => r.concessionaria === sel);
+    $("motivos-conc").innerHTML = sel
+      ? (mc ? `<b>${esc(sel)}</b> — fatores mais comuns entre as ${nf(mc.obras_atrasadas)} obras atrasadas: ${esc(mc.principais_fatores)}.`
+            : `<b>${esc(sel)}</b> ainda não tem obras atrasadas em anos encerrados.`)
+      : "A linha vertical marca 1× (sem efeito). Selecione uma concessionária para ver os fatores dela.";
+  }
+  function tipos() {
+    barras($("barras-tipos"), D.tipos.slice(0, 8).map(r => ({
+      nome: r.tipo, valor: r.taxa_atraso_pct, texto: pct(r.taxa_atraso_pct),
+      dica: `<b>${esc(r.tipo)}</b><br>${pct(r.taxa_atraso_pct)} atrasaram · ${nf(r.obras)} metas anuais`,
+    })), { max: 100 });
+  }
+
+  // ---------- obras ----------
+  function obras() {
+    const q = $("busca").value.trim().toLowerCase();
+    const ano = D.resumo.ano_referencia;
+    let lista = D.obras.filter(o => (!sel || o.concessionaria === sel) && (sel || o.ano === ano));
+    if (q) lista = lista.filter(o => [o.descricao, o.rodovia, o.tipo, o.concessionaria].join(" ").toLowerCase().includes(q));
+    $("titulo-obras").textContent = sel ? `Obras com maior chance de atraso — ${sel}` : `Obras com maior chance de atraso em ${ano}`;
+    const el = $("lista-obras");
+    if (!lista.length) { el.innerHTML = '<p class="vazio">Nenhuma obra encontrada.</p>'; $("mais-obras").hidden = true; return; }
+    el.innerHTML = lista.slice(0, limiteObras).map(o => {
+      const cor = o.prob >= 66 ? "var(--critical)" : o.prob >= 33 ? "var(--warning)" : "var(--good)";
+      const onde = [sel ? null : o.concessionaria, o.rodovia, o.km_inicial != null ? "km " + nf(o.km_inicial, 1) : null, o.ano].filter(Boolean).join(" · ");
+      const chips = (o.motivos_provaveis || "").split(";").map(s => s.trim()).filter(Boolean).map(s => `<span class="chip">${esc(s)}</span>`).join("");
+      return `<article class="obra"><div class="prob num" style="box-shadow: inset 0 -3px 0 ${cor}">${Math.round(o.prob)}%</div>
+        <div><p class="titulo">${esc(o.descricao || o.tipo || "Obra")}</p><p class="onde">${esc(onde)}</p><div class="chips">${chips}</div></div></article>`;
+    }).join("");
+    $("mais-obras").hidden = lista.length <= limiteObras;
+    $("mais-obras").textContent = `Mostrar mais (${nf(lista.length - limiteObras)} restantes)`;
+  }
+
+  // ---------- impacto ----------
+  function impacto() {
+    const cols = [["concessionaria", "Concessionária", v => esc(v)], ["obras_atrasadas", "Obras atrasadas", v => nf(v)],
+      ["km_nao_entregues", "Km não entregues", v => nf(v, 1)], ["postergacao_media_meses", "Postergação (meses)", v => nf(v, 1)],
+      ["inexecucao_media_pct", "Inexecução oficial", v => pct(v)], ["fator_d_total_pct", "Fator D", v => pct(v, 2)]];
+    const temOficial = D.impacto.some(r => r.inexecucao_media_pct != null);
+    const usar = cols.filter(c => temOficial || !["inexecucao_media_pct", "fator_d_total_pct"].includes(c[0]));
+    $("tabela-impacto").innerHTML = `<thead><tr>${usar.map(c => `<th scope="col">${c[1]}</th>`).join("")}</tr></thead><tbody>` +
+      D.impacto.map(r => `<tr class="${r.concessionaria === sel ? "sel" : ""}">${usar.map(c => `<td class="num">${c[2](r[c[0]])}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  }
+
+  // ---------- filtro ----------
+  function selecionar(c) {
+    sel = c; limiteObras = 12;
+    $("sel-conc").value = c; $("limpar").hidden = !c;
+    const url = new URL(location); c ? url.searchParams.set("c", c) : url.searchParams.delete("c");
+    history.replaceState(null, "", url);
+    risco(); desenharLinha(); fatores(); obras(); impacto();
+  }
+
+  $("link-github").href = REPO;
+  $("sel-conc").onchange = e => selecionar(e.target.value);
+  $("limpar").onclick = () => selecionar("");
+  $("busca").oninput = () => { limiteObras = 12; obras(); };
+  $("mais-obras").onclick = () => { limiteObras += 24; obras(); };
+  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(desenharLinha, 150); });
+
+  fetch("dados.json", { cache: "no-cache" }).then(r => r.json()).then(dados => {
+    D = dados;
+    const nomes = [...new Set([...D.risco.map(r => r.concessionaria), ...Object.keys(D.serie.por_concessionaria)])].sort();
+    $("sel-conc").insertAdjacentHTML("beforeend", nomes.map(n => `<option>${esc(n)}</option>`).join(""));
+    kpis(); tipos();
+    const inicial = new URL(location).searchParams.get("c");
+    selecionar(nomes.includes(inicial) ? inicial : "");
+  }).catch(err => {
+    $("meta").textContent = "Não foi possível carregar os dados (" + err.message + ").";
+  });
+})();
+</script>
+</body>
+</html>

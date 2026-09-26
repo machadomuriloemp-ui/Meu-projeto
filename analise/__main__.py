@@ -6,14 +6,19 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import baixar, carregar, config, cumprimento, impacto, modelo, motivos, obras, relatorio
+from . import (baixar, carregar, config, cumprimento, dashboard, impacto, modelo, motivos, obras,
+               relatorio)
 
 
 def executar(offline: bool = False, pasta_dados: Path | None = None,
-             pasta_saida: Path | None = None, hoje: str | None = None) -> dict:
+             pasta_saida: Path | None = None, hoje: str | None = None,
+             pasta_dashboard: Path | None = None) -> dict:
     """hoje: data de referência (padrão: data atual). Usado nos testes."""
     if pasta_dados is not None:
         config.PASTA_DADOS = Path(pasta_dados)
+    if pasta_dashboard is None:
+        # Com pasta de saída própria (ex.: testes), não mexe no dashboard publicado
+        pasta_dashboard = Path(pasta_saida) / "docs" if pasta_saida else config.PASTA_DASHBOARD
     pasta_saida = Path(pasta_saida) if pasta_saida else config.PASTA_SAIDA
 
     print("== 1/5 Dados")
@@ -80,6 +85,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     }
     destino = relatorio.gerar(resultado, pasta_saida)
     print(f"Relatório: {destino}")
+    print(f"Dashboard: {dashboard.exportar(resultado, Path(pasta_dashboard) / 'dados.json')}")
     return resultado
 
 

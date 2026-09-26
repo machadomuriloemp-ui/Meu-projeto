@@ -4,6 +4,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 PASTA_DADOS = RAIZ / "dados" / "brutos"
 PASTA_SAIDA = RAIZ / "saida"
+PASTA_DASHBOARD = RAIZ / "docs"  # publicada pelo GitHub Pages
 
 PORTAL = "https://dados.antt.gov.br"
 
