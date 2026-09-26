@@ -1,14 +1,19 @@
 ﻿concessionaria;obras_atrasadas;principais_fatores
 AUTOPISTA LITORAL SUL;4;"Obra herdada do ano anterior (não executada) (3); Meta concentrada no fim do ano (1)"
-AUTOPISTA PLANALTO SUL;1;Sem motivo registrado nas bases
+AUTOPISTA PLANALTO SUL;2;Meta concentrada no fim do ano (1)
+ECOVIAS CAPIXABA;14;"Projeto executivo não concluído (11); Meta concentrada no fim do ano (11); Desapropriação pendente (3)"
 ECOVIAS DO ARAGUAIA;21;"Licenciamento ambiental pendente (21); Desapropriação pendente (21); Projeto executivo não concluído (6)"
 ECOVIAS MINAS GOIÁS;2;"Projeto executivo não concluído (2); Término postergado vs. cronograma original (2); Obra herdada do ano anterior (não executada) (2)"
 ECOVIAS RIO MINAS;278;"Projeto executivo não concluído (253); Meta concentrada no fim do ano (23); Término postergado vs. cronograma original (8)"
+ELOVIAS;7;"Projeto executivo não concluído (4); Meta concentrada no fim do ano (4); Observação cita questão judicial/regulatória (1)"
+EPR IGUAÇU;3;Meta concentrada no fim do ano (1)
 EPR VIA MINEIRA;3;"Projeto executivo não concluído (3); Desapropriação pendente (3); Meta concentrada no fim do ano (3)"
-LITORAL PIONEIRO;11;"Meta concentrada no fim do ano (11); Projeto executivo não concluído (7); Muitas revisões do plano no ano (3)"
+LITORAL PIONEIRO;11;"Meta concentrada no fim do ano (11); Projeto executivo não concluído (7)"
 MOTIVA PARANÁ;7;"Meta concentrada no fim do ano (7); Projeto executivo não concluído (6); Licenciamento ambiental pendente (6)"
-RIOSP;73;"Projeto executivo não concluído (59); Meta concentrada no fim do ano (44); Licenciamento ambiental pendente (5)"
-VIA ARAUCÁRIA;10;"Projeto executivo não concluído (7); Muitas revisões do plano no ano (3); Meta concentrada no fim do ano (3)"
+PANTANAL;34;"Meta concentrada no fim do ano (32); Projeto executivo não concluído (31); Desapropriação pendente (1)"
+RIOSP;74;"Projeto executivo não concluído (60); Meta concentrada no fim do ano (45); Licenciamento ambiental pendente (6)"
+VIA ARAUCÁRIA;10;"Projeto executivo não concluído (7); Meta concentrada no fim do ano (3)"
 VIA COSTEIRA;7;"Obra herdada do ano anterior (não executada) (6); Projeto executivo não concluído (5); Término postergado vs. cronograma original (4)"
-VIA CRISTAIS;2;"Meta concentrada no fim do ano (2); Muitas revisões do plano no ano (1)"
-VIA SUL;47;"Término postergado vs. cronograma original (28); Obra herdada do ano anterior (não executada) (28); Muitas revisões do plano no ano (19)"
+VIA CRISTAIS;2;Meta concentrada no fim do ano (2)
+VIA SUL;47;"Término postergado vs. cronograma original (28); Obra herdada do ano anterior (não executada) (28); Meta concentrada no fim do ano (8)"
+WAY 262;1;Sem motivo registrado nas bases

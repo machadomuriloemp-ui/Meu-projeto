@@ -1,19 +1,19 @@
 ﻿variavel;fator;peso;efeito
-razao_ytd;Executado ÷ previsto no ano até agora;-0,8782819025432935;quanto maior, MENOS risco
-concentracao_fim_ano;Fração da meta nos meses 10–12;0,7189912243395348;quanto maior, MAIS risco
-meses_com_meta;Nº de meses com meta;0,5517706561676644;quanto maior, MAIS risco
-pend_projeto;Projeto executivo pendente;0,4866746773589378;quanto maior, MAIS risco
-duracao_meses;Prazo previsto (meses);-0,47086632914014453;quanto maior, MENOS risco
-previsto_anual;% da obra previsto para o ano;-0,465409995925047;quanto maior, MENOS risco
-motivo_judicial_regulatorio;Observação cita questão judicial/regulatória;0,41375550590093463;quanto maior, MAIS risco
-pend_licenciamento;Licenciamento ambiental pendente;0,3411735523666189;quanto maior, MAIS risco
-exec_acum_anterior;% executado antes do ano;0,3190140479018089;quanto maior, MAIS risco
-hist_atraso_tipo;Taxa histórica de atraso do tipo de obra;0,23898335991763556;quanto maior, MAIS risco
-extensao;Extensão (km);0,12989960603387207;quanto maior, MAIS risco
-hist_atraso_concessionaria;Taxa histórica de atraso da concessionária;-0,11200374640722362;quanto maior, MENOS risco
-herdada_ano_anterior;Obra herdada do ano anterior;-0,10728478239604439;quanto maior, MENOS risco
-meses_postergacao;Meses de postergação vs. cronograma original;-0,08090818370730533;quanto maior, MENOS risco
-motivo_contratacao_suprimentos;Observação cita contratação/suprimentos;-0,06898844235715522;quanto maior, MENOS risco
-pend_desapropriacao;Desapropriação pendente;0,054790680576690516;quanto maior, MAIS risco
-log_valor;Valor contratual;-0,03638338438408295;quanto maior, MENOS risco
-n_versoes;Nº de revisões do plano;-0,025781026252572933;quanto maior, MENOS risco
+motivo_projeto;Observação cita projeto/aprovação;-0,9053698078270551;quanto maior, MENOS risco
+meses_com_meta;Nº de meses com meta;0,6799024179249613;quanto maior, MAIS risco
+concentracao_fim_ano;Fração da meta nos meses 10–12;0,65040914835601;quanto maior, MAIS risco
+razao_ytd;Executado ÷ previsto no ano até agora;-0,539608812892277;quanto maior, MENOS risco
+duracao_meses;Prazo previsto (meses);-0,4844385616464201;quanto maior, MENOS risco
+pend_projeto;Projeto executivo pendente;0,47274850744461355;quanto maior, MAIS risco
+motivo_judicial_regulatorio;Observação cita questão judicial/regulatória;0,4633683627669245;quanto maior, MAIS risco
+previsto_anual;% da obra previsto para o ano;-0,32302130438018845;quanto maior, MENOS risco
+exec_acum_anterior;% executado antes do ano;0,2857978173042206;quanto maior, MAIS risco
+pend_desapropriacao;Desapropriação pendente;0,23711671060098904;quanto maior, MAIS risco
+hist_atraso_tipo;Taxa histórica de atraso do tipo de obra;0,21769227725011905;quanto maior, MAIS risco
+herdada_ano_anterior;Obra herdada do ano anterior;-0,18558595364298117;quanto maior, MENOS risco
+extensao;Extensão (km);0,07675623327458107;quanto maior, MAIS risco
+motivo_contratacao_suprimentos;Observação cita contratação/suprimentos;-0,07479644533970795;quanto maior, MENOS risco
+hist_atraso_concessionaria;Taxa histórica de atraso da concessionária;-0,065076097857373;quanto maior, MENOS risco
+pend_licenciamento;Licenciamento ambiental pendente;-0,042504221792394735;quanto maior, MENOS risco
+log_valor;Valor contratual;-0,034727066286954565;quanto maior, MENOS risco
+meses_postergacao;Meses de postergação vs. cronograma original;0,01636922210081465;quanto maior, MAIS risco

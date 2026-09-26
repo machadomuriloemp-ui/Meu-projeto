@@ -1,42 +1,47 @@
 ﻿tipo;obras;taxa_atraso_pct
 Demolição;6;100,0
 Veículos da Polícia Rodoviária Estadual;3;100,0
-Melhoria em Acesso (local a definir);134;96,26865671641791
+Melhoria em Acesso (local a definir);145;93,79310344827586
+Rotatória em Nível;8;87,5
 Alargamento de Obra-de-Arte Especial;26;84,61538461538461
-Retorno em Nível;18;83,33333333333334
 Unidade Operacional da Polícia Rodoviária Federal;12;83,33333333333334
-Faixa Adicional;32;78,125
 Passagem Inferior;9;77,77777777777779
-Rotatória em Nível;4;75,0
-Via Marginal;67;73,13432835820896
+Faixa Adicional;37;75,67567567567568
+Via Marginal;69;73,91304347826086
+Retorno em Nível;27;70,37037037037037
+Duplicação de Trecho Rodoviário;30;70,0
 Alça de Ligação em Desnível;12;66,66666666666666
-Duplicação de Trecho Rodoviário;20;65,0
-Ponto de Ônibus (local a definir);120;61,66666666666667
+Ponto de Ônibus (local a definir);124;62,096774193548384
 Iluminação de Travessias Urbanas;10;60,0
+Sistema de Detecção de Altura;5;60,0
 Recuperação ou Manutenção de Obra-de-Arte Especial;50;52,0
-Veículos da Polícia Rodoviária Federal;9;44,44444444444444
-Sistema de Comunicação Wireless;5;40,0
-Interseção em Desnível;22;36,36363636363637
-Nova Obra-de-Arte Especial;20;35,0
+Sistema de Comunicação Wireless;6;50,0
+Veículos da Polícia Rodoviária Federal;12;50,0
+Meio Retorno em Nível;4;50,0
+Nova Obra-de-Arte Especial;25;44,0
+Interseção em Desnível;23;39,130434782608695
+Ponto de Parada e Descanso para Caminhoneiros;9;33,33333333333333
 Reforma/Adequação de Unidade Operacional da Polícia Rodoviária Federal;3;33,33333333333333
-Base de Serviços Operacionais com Atendimento aos Usuários;42;26,190476190476193
-Sistema de Controle de Velocidade;8;25,0
-Ponto de Parada e Descanso para Caminhoneiros;8;25,0
-Passarela (local definido);42;23,809523809523807
+Sistema de Monitoramento Meteorológico;3;33,33333333333333
+Reforma/Adequação de Base de Serviços Operacionais com Atendimento aos Usuários;46;26,08695652173913
+Passarela (local definido);43;23,25581395348837
 Retorno em Desnível;23;21,73913043478261
 Melhoria em Acesso (local definido);20;20,0
-Reforma/Adequação de Base de Serviços Operacionais com Atendimento aos Usuários;27;11,11111111111111
+Base de Serviços Operacionais com Atendimento aos Usuários;68;19,11764705882353
+Sistema de Controle de Velocidade;11;18,181818181818183
+Centro de Controle Operacional;8;12,5
+Veículos de Fiscalização da ANTT;10;10,0
 Adequações de Faixas de Aceleração e Desaceleração;11;9,090909090909092
+Contorno Rodoviário em Pista;13;7,6923076923076925
+Fibra Ótica;4;0,0
 Barreira de Ruído;11;0,0
-Centro de Controle Operacional;4;0,0
-Contorno Rodoviário em Pista;11;0,0
-Fibra Ótica;3;0,0
-Painel de Mensagens Variáveis Móvel;7;0,0
 Posto de Pesagem Veicular;7;0,0
-Pórtico de Livre Passagem (Free Flow);19;0,0
-Reforma/Adequação de Praça de Pedágio;26;0,0
+Painel de Mensagens Variáveis Móvel;10;0,0
+Reforma/Adequação de Praça de Pedágio;36;0,0
 Reforma/Adequação de Posto Rodoviário da Polícia Rodoviária Estadual;3;0,0
-Sistema de Circuito Fechado de TV;4;0,0
-Sistema de Comunicação com o  Usuário;4;0,0
+Praça de Pedágio;4;0,0
+Pórtico de Livre Passagem (Free Flow);26;0,0
+Sistema de Comunicação com o  Usuário;5;0,0
+Sistema de Circuito Fechado de TV;5;0,0
 Túnel;4;0,0
-Veículos de Fiscalização da ANTT;6;0,0
+Sistema de Detecção e Sensoriamento de Pista;3;0,0

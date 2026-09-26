@@ -1,10 +1,10 @@
 ﻿fator;coluna;obras_com_fator;taxa_atraso_com_fator_pct;taxa_atraso_sem_fator_pct;lift;pct_dos_atrasos
-Observação cita questão judicial/regulatória;motivo_judicial_regulatorio;7;100,0;51,11358574610245;1,9420600858369097;1,502145922746781
-Desapropriação pendente;pend_desapropriacao;39;84,61538461538461;50,0;1,6432816110927697;7,081545064377683
-Licenciamento ambiental pendente;pend_licenciamento;45;82,22222222222221;49,883720930232556;1,5968049594659035;7,939914163090128
-Projeto executivo não concluído;pend_projeto;488;72,1311475409836;27,33812949640288;1,4008302258495742;75,53648068669528
-Meta concentrada no fim do ano;concentracao_fim_ano;276;38,405797101449274;57,23370429252782;0,7458636561547551;22,746781115879827
-Término postergado vs. cronograma original;meses_postergacao;121;35,53719008264463;53,954081632653065;0,690153584223034;9,2274678111588
-Obra herdada do ano anterior (não executada);herdada_ano_anterior;122;34,42622950819672;54,1507024265645;0,6685780623372968;9,012875536480687
-Muitas revisões do plano no ano;n_versoes;82;31,70731707317073;53,462940461725395;0,6157751491678006;5,579399141630901
-Observação cita contratação/suprimentos;motivo_contratacao_suprimentos;1;0,0;51,54867256637168;0,0;0,0
+Desapropriação pendente;pend_desapropriacao;47;80,85106382978722;48,415841584158414;1,6216238039484838;7,2106261859582546
+Projeto executivo não concluído;pend_projeto;574;69,51219512195121;26,501035196687372;1,394200953394733;75,71157495256166
+Licenciamento ambiental pendente;pend_licenciamento;66;59,09090909090909;49,24318869828456;1,185181990684837;7,400379506641366
+Observação cita questão judicial/regulatória;motivo_judicial_regulatorio;15;53,333333333333336;49,80806142034549;1,0697027197975966;1,5180265654648957
+Meta concentrada no fim do ano;concentracao_fim_ano;365;42,73972602739726;53,612716763005785;0,8572275220295807;29,601518026565465
+Término postergado vs. cronograma original;meses_postergacao;121;35,53719008264463;51,70940170940172;0,7127667916006711;8,159392789373813
+Obra herdada do ano anterior (não executada);herdada_ano_anterior;122;34,42622950819672;51,87165775401069;0,6904843375742682;7,969639468690702
+Observação cita projeto/aprovação;motivo_projeto;22;0,0;50,91787439613527;0,0;0,0
+Observação cita contratação/suprimentos;motivo_contratacao_suprimentos;1;0,0;49,90530303030303;0,0;0,0
