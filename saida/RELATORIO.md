@@ -1,6 +1,6 @@
 # Cumprimento do planejado — concessões rodoviárias (ANTT)
 
-_Gerado em 26/09/2026 10:14. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
+_Gerado em 26/09/2026 10:36. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
 
 ## Resumo
 
