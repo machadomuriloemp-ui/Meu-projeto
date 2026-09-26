@@ -1,11 +1,11 @@
 # Cumprimento do planejado — concessões rodoviárias (ANTT)
 
-_Gerado em 26/09/2026 10:08. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
+_Gerado em 26/09/2026 10:11. Fonte: Portal de Dados Abertos da ANTT (SIGICOR). 22 concessionária(s), anos 2023–2026, 1107 obras acompanhadas._
 
 ## Resumo
 
-- **Maior risco de atraso:** ECOVIAS RIO MINAS — 100% de chance de não cumprir o plano de 2025 (429 obra(s) em risco).
-- **Risco alto:** ECOVIAS RIO MINAS, NOVA 381, LITORAL PIONEIRO, VIA SUL, NOVA 364, ECOVIAS MINAS GOIÁS, EPR IGUAÇU, VIA ARAUCÁRIA, VIA CRISTAIS, AUTOPISTA FLUMINENSE, AUTOPISTA LITORAL SUL, MOTIVA MINAS SP, ECOVIAS DO ARAGUAIA, NOVA ROTA DO OESTE, WAY 262, ROTA VERDE GOIÁS, MOTIVA PARANÁ.
+- **Maior risco de atraso:** ECOVIAS RIO MINAS — 99% de chance de não cumprir o plano de 2026 (97 obra(s) em risco).
+- **Risco alto:** ECOVIAS RIO MINAS, NOVA 381, LITORAL PIONEIRO, VIA SUL, ECOVIAS DO CERRADO, NOVA 364, ECOVIAS MINAS GOIÁS, EPR IGUAÇU, VIA ARAUCÁRIA, VIA CRISTAIS, NOVA ROTA DO OESTE, AUTOPISTA FLUMINENSE, AUTOPISTA LITORAL SUL, MOTIVA MINAS SP, ECOVIAS DO ARAGUAIA, WAY 262, ROTA VERDE GOIÁS, MOTIVA PARANÁ.
 - **Tendência piorando:** ELOVIAS, EPR IGUAÇU, EPR VIA MINEIRA, NOVA 381, PANTANAL, RIOSP.
 - **Tendência melhorando:** VIA SUL.
 - **Motivos mais associados a atraso:** Desapropriação pendente (1,6×); Projeto executivo não concluído (1,4×); Licenciamento ambiental pendente (1,2×).
@@ -16,31 +16,31 @@ Probabilidade de a concessionária executar menos de 90% do que planejou para o 
 
 | Concessionária | Ano | Risco | Chance de não cumprir | Cumprimento esperado | Obras em risco |
 |---|---|---|---|---|---|
-| ECOVIAS RIO MINAS | 2025 | Alto | 100% | 35% | 429 |
-| NOVA 381 | 2026 | Alto | 98% | 57% | 7 |
-| LITORAL PIONEIRO | 2026 | Alto | 97% | 65% | 23 |
+| ECOVIAS RIO MINAS | 2026 | Alto | 99% | 50% | 97 |
+| NOVA 381 | 2026 | Alto | 98% | 56% | 7 |
+| LITORAL PIONEIRO | 2026 | Alto | 97% | 66% | 23 |
 | VIA SUL | 2026 | Alto | 97% | 64% | 35 |
-| NOVA 364 | 2026 | Alto | 97% | 57% | 17 |
-| ECOVIAS MINAS GOIÁS | 2026 | Alto | 94% | 48% | 12 |
+| ECOVIAS DO CERRADO | 2026 | Alto | 97% | 56% | 13 |
+| NOVA 364 | 2026 | Alto | 97% | 58% | 17 |
+| ECOVIAS MINAS GOIÁS | 2026 | Alto | 94% | 49% | 12 |
 | EPR IGUAÇU | 2026 | Alto | 93% | 58% | 6 |
 | VIA ARAUCÁRIA | 2026 | Alto | 92% | 71% | 20 |
-| VIA CRISTAIS | 2026 | Alto | 92% | 54% | 2 |
+| VIA CRISTAIS | 2026 | Alto | 91% | 55% | 2 |
+| NOVA ROTA DO OESTE | 2026 | Alto | 88% | 43% | 2 |
 | AUTOPISTA FLUMINENSE | 2026 | Alto | 87% | 59% | 2 |
 | AUTOPISTA LITORAL SUL | 2026 | Alto | 84% | 76% | 4 |
 | MOTIVA MINAS SP | 2026 | Alto | 83% | 70% | 2 |
 | ECOVIAS DO ARAGUAIA | 2025 | Alto | 81% | 72% | 1 |
-| NOVA ROTA DO OESTE | 2025 | Alto | 77% | 41% | 1 |
-| WAY 262 | 2026 | Alto | 75% | 75% | 1 |
+| WAY 262 | 2026 | Alto | 74% | 76% | 1 |
 | ROTA VERDE GOIÁS | 2026 | Alto | 74% | 70% | 0 |
-| MOTIVA PARANÁ | 2026 | Alto | 69% | 82% | 5 |
-| VIA CAMPO | 2026 | Médio | 62% | 82% | 0 |
-| ECOVIAS DO CERRADO | 2024 | Médio | 51% | 86% | 3 |
+| MOTIVA PARANÁ | 2026 | Alto | 68% | 82% | 5 |
+| VIA CAMPO | 2026 | Médio | 63% | 82% | 0 |
 | WAY 153 | 2026 | Médio | 50% | 87% | 0 |
-| WAY 364 | 2026 | Baixo | 33% | 91% | 0 |
-| EPR PARANÁ | 2026 | Baixo | 33% | 91% | 0 |
+| EPR PARANÁ | 2026 | Médio | 33% | 91% | 0 |
+| WAY 364 | 2026 | Baixo | 32% | 91% | 0 |
 | AUTOPISTA PLANALTO SUL | 2026 | Baixo | 31% | 82% | 1 |
 | ECOVIAS DAS GERAIS | 2026 | Baixo | 27% | 92% | 0 |
-| ECOVIAS PONTE | 2024 | Baixo | 15% | 87% | 0 |
+| ECOVIAS PONTE | 2025 | Baixo | 6% | 95% | 0 |
 
 ![Risco](graficos/risco.png)
 
@@ -66,12 +66,12 @@ Probabilidade de a concessionária executar menos de 90% do que planejou para o 
 | NOVA 381 | 82% | 65% | 58% | Piorando | -13,4 |
 | PANTANAL | 97% | 49% | 67% | Piorando | -168,3 |
 | RIOSP | 71% | 22% | 39% | Piorando | -45,6 |
-| ROTA VERDE GOIÁS | 30% | 50% | 20% | Estável | 0,0 |
+| ROTA VERDE GOIÁS | 30% | 50% | 20% | Dados insuficientes | – |
 | VIA ARAUCÁRIA | 103% | 97% | 71% | Estável | -1,6 |
 | VIA COSTEIRA | 75% | 115% | 42% | Estável | 42,1 |
 | VIA CRISTAIS | 40% | 39% | 13% | Estável | -32,6 |
 | VIA SUL | 26% | 71% | 10% | Melhorando | 29,0 |
-| WAY 262 | 104% | 102% | 70% | Estável | -1,2 |
+| WAY 262 | 104% | 102% | 70% | Dados insuficientes | – |
 
 ![Tendência](graficos/tendencia.png)
 
@@ -213,51 +213,51 @@ Déficit = % previsto − % executado. Km e R$ = déficit aplicado à extensão 
 
 | Concessionária | Valor em risco | Km em risco | Faixa provável de cumprimento |
 |---|---|---|---|
-| ECOVIAS RIO MINAS | – | 1.207,1 | 14%–59% |
-| NOVA 381 | – | 0,0 | 32%–80% |
+| ECOVIAS RIO MINAS | – | 461,1 | 26%–75% |
+| NOVA 381 | – | 0,0 | 33%–80% |
 | LITORAL PIONEIRO | – | 81,7 | 50%–82% |
-| VIA SUL | – | 97,7 | 45%–83% |
-| NOVA 364 | – | 1.453,7 | 32%–82% |
-| ECOVIAS MINAS GOIÁS | – | 0,6 | 10%–87% |
-| EPR IGUAÇU | – | 0,0 | 26%–88% |
+| VIA SUL | – | 97,7 | 45%–82% |
+| ECOVIAS DO CERRADO | – | 89,7 | 31%–81% |
+| NOVA 364 | – | 1.453,7 | 33%–82% |
+| ECOVIAS MINAS GOIÁS | – | 0,6 | 10%–86% |
+| EPR IGUAÇU | – | 0,0 | 25%–88% |
 | VIA ARAUCÁRIA | – | 38,2 | 52%–89% |
-| VIA CRISTAIS | – | 0,0 | 25%–85% |
+| VIA CRISTAIS | – | 0,0 | 25%–86% |
+| NOVA ROTA DO OESTE | R$ 39,5 mi | 1,6 | 10%–95% |
 | AUTOPISTA FLUMINENSE | – | 0,9 | 28%–100% |
 | AUTOPISTA LITORAL SUL | R$ 11,1 mi | 3,8 | 55%–92% |
 | MOTIVA MINAS SP | – | 0,3 | 43%–93% |
 | ECOVIAS DO ARAGUAIA | – | 21,3 | 47%–93% |
-| NOVA ROTA DO OESTE | R$ 8,1 mi | 0,9 | 9%–100% |
 | WAY 262 | – | 0,0 | 49%–98% |
-| ROTA VERDE GOIÁS | – | 101,2 | 37%–100% |
-| MOTIVA PARANÁ | – | 0,0 | 65%–97% |
-| VIA CAMPO | – | 0,0 | 61%–99% |
-| ECOVIAS DO CERRADO | – | 107,5 | 67%–100% |
-| WAY 153 | – | 0,0 | 71%–100% |
-| WAY 364 | – | 0,0 | 76%–100% |
+| ROTA VERDE GOIÁS | – | 101,2 | 40%–100% |
+| MOTIVA PARANÁ | – | 0,0 | 66%–97% |
+| VIA CAMPO | – | 0,0 | 60%–99% |
+| WAY 153 | – | 0,0 | 70%–100% |
 | EPR PARANÁ | – | 0,0 | 76%–100% |
+| WAY 364 | – | 0,0 | 76%–100% |
 | AUTOPISTA PLANALTO SUL | R$ 1,9 mi | 0,3 | 46%–100% |
 | ECOVIAS DAS GERAIS | – | 0,0 | 80%–100% |
-| ECOVIAS PONTE | R$ 6,9 mi | 1,9 | 0%–100% |
+| ECOVIAS PONTE | R$ 226.224 | 0,1 | 100%–100% |
 
 ## 5. Obras com maior probabilidade de atraso
 
 | Concessionária | Obra | Chance de atraso | Motivos prováveis |
 |---|---|---|---|
 | NOVA 381 | C.Estabilização de Taludes da BR-381/MG (BR-381/MG, km 294,8) | 96% | Desapropriação pendente; Projeto executivo não concluído; Meta anual pequena (obra em fase inicial/final) |
-| ECOVIAS DO CERRADO | Reforço e Alargamento de OAE, Ponte Ribeirão dos Pat... (BR-365/MG, km 847,8) | 94% | Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano |
-| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
+| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Córreg... (BR-364/GO, km 125,9) — 2 itens | 94% | Meta concentrada no fim do ano; Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final) |
+| ECOVIAS DO CERRADO | Reforço e Alargamento de OAE, Ponte Ribeirão dos Pat... (BR-365/MG, km 847,8) — 2 itens | 94% | Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano |
 | NOVA 381 | Contrução de UOPs da PRF (BR-381/MG, km 217,5) | 92% | Baixa execução no ano até agora; Tipo de obra que costuma atrasar; Prazo previsto curto |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
-| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Rio Do... (BR-364/GO, km 113,2) | 92% | Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano; Prazo previsto curto |
+| ECOVIAS RIO MINAS | Q. Pontos de ônibus - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) — 10 itens | 92% | Meta espalhada por muitos meses; Projeto executivo não concluído; Tipo de obra que costuma atrasar |
+| ECOVIAS DO CERRADO | Alargamento e Adequação de OAE, Ponte sobre o Rio Do... (BR-364/GO, km 113,2) — 2 itens | 92% | Meta anual pequena (obra em fase inicial/final); Meta concentrada no fim do ano; Prazo previsto curto |
+| ECOVIAS RIO MINAS | L. Acessos - SEGMENTO 7' - RJ (BR-116/RJ, km 182,6) — 17 itens | 92% | Tipo de obra que costuma atrasar; Meta espalhada por muitos meses; Projeto executivo não concluído |
+| ECOVIAS RIO MINAS | B. Implantação de Faixa Adicional (BR-116/RJ, km 182,6) — 2 itens | 92% | Meta espalhada por muitos meses; Tipo de obra que costuma atrasar; Projeto executivo não concluído |
+| VIA SUL | Iluminação em travessias urbanas - BR-386/RS - ID 10... (BR-386/RS, km 180,2) | 90% | Obra já avançada em anos anteriores; Projeto executivo não concluído; Meta anual pequena (obra em fase inicial/final) |
+| AUTOPISTA PLANALTO SUL | Execução de Terceiras Faixas (Terceiras Faixas 28 km... (BR-116/SC, km 302,6) | 88% | Meta anual pequena (obra em fase inicial/final); Tipo de obra que costuma atrasar; Projeto executivo não concluído |
+| VIA SUL | Iluminação em travessias urbanas - BR-101/RS ID 1 a 5. (BR-101/RS, km 0,0) | 88% | Obra já avançada em anos anteriores; Tipo de obra que costuma atrasar; Prazo previsto curto |
+| LITORAL PIONEIRO | E. Trombeta (BR-153/PR, km 23,4) | 87% | Desapropriação pendente; Projeto executivo não concluído; Prazo previsto curto |
+| LITORAL PIONEIRO | H. Trevo (BR-153/PR, km 1,0) | 86% | Meta espalhada por muitos meses; Projeto executivo não concluído; Meta concentrada no fim do ano |
+| ECOVIAS MINAS GOIÁS | Melhoria em Acesso - ID-4 - km 282,00 - Catalão (BR-050/GO, km 282,0) | 86% | Obra já avançada em anos anteriores; Meta anual pequena (obra em fase inicial/final); Projeto executivo não concluído |
+| LITORAL PIONEIRO | F. Diamante (BR-153/PR, km 43,9) | 86% | Desapropriação pendente; Meta espalhada por muitos meses; Projeto executivo não concluído |
 
 _Lista completa no Excel (aba `previsao_obras`)._
 
