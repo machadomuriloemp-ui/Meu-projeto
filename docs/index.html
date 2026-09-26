@@ -582,6 +582,20 @@ header.topo { position: relative; }
                    [80, "#1c5cab", "#ffffff"], [101, "#0d366b", "#ffffff"]];
   const corDe = v => CLASSES.find(c => v < c[0]);
   let indMapa = "hist", ufSel = "";
+  // Quanto cada concessionária pesa no número do estado (evita ler como "o estado" o que é de uma empresa só)
+  function pesoConcessionarias(uf, campo, base) {
+    const partes = Object.entries(D.regioes.por_concessionaria || {})
+      .map(([c, v]) => [c, (v.por_uf || []).find(r => r.uf === uf)])
+      .filter(([, r]) => r && r[base] > 0)
+      .map(([c, r]) => ({ c, n: r[base], v: r[campo] }))
+      .sort((a, b) => b.n - a.n);
+    if (!partes.length) return "";
+    const total = partes.reduce((a, p) => a + p.n, 0);
+    const lista = partes.map(p => `${esc(p.c)}: ${nf(p.n)} (${pct(p.v)})`).join(" · ");
+    const maior = partes[0], peso = maior.n / total * 100;
+    return `<p>Por concessionária: ${lista}</p>` +
+      (partes.length > 1 && peso >= 60 ? `<p><b>Atenção:</b> ${esc(maior.c)} responde por ${pct(peso)} das ${base === "metas_encerradas" ? "metas" : "obras"} do estado, então o número reflete principalmente ela.</p>` : "");
+  }
   function mapa() {
     const R = D.regioes;
     if (!R || !R.por_uf) return;
@@ -626,7 +640,7 @@ header.topo { position: relative; }
       d.innerHTML = `<h3>${esc(r.nome)} · ${esc(r.regiao)}</h3>` +
         `<p>Atraso histórico: <b>${pct(r.taxa_atraso_pct)}</b> (${nf(r.metas_atrasadas)} de ${nf(r.metas_encerradas)} metas encerradas)${r.poucos_dados ? " — poucos dados, leia com cautela" : ""}</p>` +
         `<p>Obras em risco em ${ano}: <b>${r.obras_ano_atual ? `${nf(r.obras_em_risco)} de ${nf(r.obras_ano_atual)} (${pct(r.pct_em_risco)})` : "sem plano no ano"}</b></p>` +
-        (sel ? "" : `<p>Concessionárias com obras no estado: ${esc((r.concessionarias || []).join(", "))}</p>`);
+        (sel ? "" : pesoConcessionarias(ufSel, campo, base));
     } else { d.hidden = true; }
 
     if (sel) {
