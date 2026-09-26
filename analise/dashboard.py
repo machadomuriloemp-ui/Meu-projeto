@@ -81,13 +81,20 @@ def obras_para_o_painel(prev: pd.DataFrame, anos_validos: pd.DataFrame | None = 
     if "km_inicial" not in p:
         p["km_inicial"] = np.nan
     p["_km"] = p["km_inicial"].round(3).fillna(-1)
+    # "BR-364" e "BR-364/RO" são a mesma rodovia escrita de dois jeitos
+    p["_rod"] = (p["rodovia"].str.upper().str.replace(r"\s+", "", regex=True)
+                 .str.replace(r"/[A-Z]{2}$", "", regex=True))
+    p["_desc"] = p["descricao"].str.strip().str.upper()
     p = p.sort_values("prob", ascending=False)
-    chave = ["concessionaria", "ano", "descricao", "rodovia", "_km", "tipo"]
+    chave = ["concessionaria", "ano", "_desc", "_rod", "_km", "tipo"]
     grupos = p.groupby(chave, sort=False, dropna=False)
     agrup = grupos.first().reset_index()   # a linha de maior probabilidade de cada grupo
     agrup["itens"] = grupos.size().to_numpy()
     agrup["prob_media"] = grupos["prob"].mean().round(1).to_numpy()
-    return agrup.drop(columns="_km").sort_values("prob", ascending=False).reset_index(drop=True)
+    # mostra a forma mais completa do nome da rodovia (ex.: "BR-364/RO")
+    agrup["rodovia"] = grupos["rodovia"].agg(lambda s: max(s, key=len)).to_numpy()
+    agrup = agrup.drop(columns=["_km", "_rod", "_desc"], errors="ignore")
+    return agrup.sort_values("prob", ascending=False).reset_index(drop=True)
 
 
 def _obras(prev: pd.DataFrame, anos_validos: pd.DataFrame | None = None) -> list[dict]:

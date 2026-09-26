@@ -67,3 +67,17 @@ def test_agrupamento_guarda_a_maior_chance_e_a_media():
     assert p.loc[0, "prob"] == 90.0
     assert p.loc[0, "prob_media"] == 50.0
     assert p.loc[0, "motivos_provaveis"] == "a"
+
+
+def test_mesma_rodovia_escrita_de_jeitos_diferentes():
+    """Como na base real: "BR-364" e "BR-364/RO" são a mesma rodovia."""
+    prev = pd.DataFrame({
+        "concessionaria": ["X"] * 3, "ano": [2026] * 3, "situacao": ["em andamento"] * 3,
+        "descricao": ["Pontos de ônibus"] * 3, "tipo": ["t"] * 3,
+        "rodovia": ["BR-364", "BR-364/RO", "PR-423"], "km_inicial": [27.6, 27.6, 27.6],
+        "prob_atraso": [0.7, 0.6, 0.5], "motivos_provaveis": ["m"] * 3,
+    })
+    p = obras_para_o_painel(prev)
+    assert len(p) == 2                      # PR-423 é outra rodovia e continua separada
+    br = p[p["rodovia"].str.startswith("BR")].iloc[0]
+    assert br["itens"] == 2 and br["rodovia"] == "BR-364/RO"
