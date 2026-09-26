@@ -102,3 +102,31 @@ def test_ano_de_referencia_do_ranking():
     assert ano_referencia(pd.Series([2025, 2026, 2027]), hoje="2026-09-26") == 2026
     assert ano_referencia(pd.Series([2024, 2025]), hoje="2026-09-26") == 2025
     assert ano_referencia(pd.Series([2027]), hoje="2026-09-26") == 2027
+
+
+def test_pagina_de_erro_do_portal_nao_apaga_a_copia_anterior(tmp_path, monkeypatch):
+    """Se o portal responder com uma página HTML (status 200), a cópia boa anterior fica."""
+    dados_simulados.gerar(tmp_path / "dados")
+    arq = tmp_path / "dados" / "acompanhamento" / "acompanhamento.csv"
+    original = arq.read_bytes()
+    monkeypatch.setattr(config, "PASTA_DADOS", tmp_path / "dados")
+    monkeypatch.setattr(baixar.time, "sleep", lambda s: None)
+
+    class Pagina:
+        content = b"<!DOCTYPE html><html><body>Servico indisponivel</body></html>" * 5
+        def raise_for_status(self):
+            pass
+        def json(self):
+            raise ValueError("não é JSON")
+
+    monkeypatch.setattr(baixar.requests, "get", lambda *a, **k: Pagina())
+    monkeypatch.setitem(config.FONTES["acompanhamento"], "urls", ["https://x/acompanhamento.csv"])
+    baixar.baixar_tudo(offline=False)
+    assert arq.read_bytes() == original
+
+
+def test_reconhece_csv_valido():
+    assert baixar.parece_csv_da_antt("concessionaria;id_sigicor;ano\nVIA SUL;1;2025\n".encode())
+    assert baixar.parece_csv_da_antt("﻿Concessionaria;Descrição\nX;y\n".encode("utf-8"))
+    assert not baixar.parece_csv_da_antt(b"<html><body>erro</body></html>")
+    assert not baixar.parece_csv_da_antt(b"")

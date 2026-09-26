@@ -11,6 +11,7 @@ Estratégia:
 from __future__ import annotations
 
 import time
+import unicodedata
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -35,14 +36,36 @@ def _descobrir_csvs(slug: str) -> list[str]:
     return urls
 
 
+def parece_csv_da_antt(conteudo: bytes) -> bool:
+    """O portal às vezes devolve uma página HTML de erro com status 200.
+
+    Só aceitamos o arquivo se a primeira linha for um cabeçalho de CSV com a
+    coluna "concessionaria" — caso contrário a cópia anterior é mantida.
+    """
+    inicio = conteudo[:4000]
+    for cod in ("utf-8-sig", "cp1252", "latin-1"):
+        try:
+            texto = inicio.decode(cod)
+            break
+        except UnicodeDecodeError:
+            continue
+    primeira = texto.lstrip().splitlines()[0].lower() if texto.strip() else ""
+    primeira = unicodedata.normalize("NFKD", primeira).encode("ascii", "ignore").decode()
+    if primeira.startswith("<") or "<html" in texto.lower():
+        return False
+    return "concessionaria" in primeira and (";" in primeira or "," in primeira)
+
+
 def _baixar(url: str, destino: Path, tentativas: int = 3) -> bool:
     for i in range(tentativas):
         try:
             resp = requests.get(url, headers=CABECALHOS, timeout=180)
             resp.raise_for_status()
-            if len(resp.content) < 50:
-                raise ValueError("arquivo vazio")
-            destino.write_bytes(resp.content)
+            if not parece_csv_da_antt(resp.content):
+                raise ValueError("o portal não devolveu um CSV válido (provável página de erro)")
+            temporario = destino.with_suffix(destino.suffix + ".novo")
+            temporario.write_bytes(resp.content)
+            temporario.replace(destino)  # só substitui a cópia anterior se o novo arquivo for válido
             return True
         except Exception as erro:  # noqa: BLE001
             print(f"    tentativa {i + 1} falhou: {erro}")
