@@ -63,7 +63,7 @@ def grafico_tendencia(serie: pd.DataFrame, destino: Path) -> bool:
     fig, ax = plt.subplots(figsize=(9, 4.5))
     for conc, g in serie.groupby("concessionaria"):
         g = g.sort_values("t")
-        movel = g["indice_cumprimento"].clip(0, 200).rolling(3, min_periods=1).mean()
+        movel = g["indice_cumprimento"].clip(0, 150).rolling(3, min_periods=1).mean()
         ax.plot(g["t"], movel, marker="o", ms=3, lw=1.8, label=conc)
     ax.axhline(config.TOLERANCIA_CUMPRIMENTO * 100, color="gray", ls="--", lw=1)
     ax.axhline(100, color="black", lw=0.6)
@@ -240,9 +240,11 @@ def gerar(r: dict, pasta: Path) -> Path:
     prev = r["previsoes"]
     if not prev.empty:
         prev = prev.sort_values("prob_atraso", ascending=False).head(15)
+    if not prev.empty:
+        prev = prev.assign(rotulo=prev.apply(_rotulo_obra, axis=1))
     md.append(tabela(prev, {
         "concessionaria": ("Concessionária", txt),
-        "descricao": ("Obra", lambda v: txt(v)[:60] if pd.notna(v) else "–"),
+        "rotulo": ("Obra", txt),
         "prob_atraso": ("Chance de atraso", lambda v: pct(v * 100)),
         "motivos_provaveis": ("Motivos prováveis", txt)}))
     md.append("_Lista completa no Excel (aba `previsao_obras`)._\n")
@@ -292,10 +294,20 @@ def gerar(r: dict, pasta: Path) -> Path:
     return destino
 
 
+def _rotulo_obra(r) -> str:
+    desc = str(r.get("descricao")) if pd.notna(r.get("descricao")) else "–"
+    desc = desc if len(desc) <= 55 else desc[:52] + "..."
+    local = [str(r["rodovia"])] if pd.notna(r.get("rodovia")) else []
+    if pd.notna(r.get("km_inicial")):
+        local.append(f"km {num(r['km_inicial'], 1)}")
+    return f"{desc} ({', '.join(local)})" if local else desc
+
+
 def _colunas_obras(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
     cols = ["concessionaria", "ano", "situacao", "id_sigicor", "item_per", "descricao", "rodovia",
+            "km_inicial",
             "tipo", "extensao", "valor_contratual", "previsto_anual", "mes_referencia",
             "previsto_ytd", "executado_ytd", "prob_atraso", "em_risco", "motivos_provaveis",
             "observacao"]

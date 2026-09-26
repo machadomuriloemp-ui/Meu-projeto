@@ -68,7 +68,7 @@ ROTULOS = {
     "hist_atraso_tipo": "Tipo de obra que costuma atrasar",
     "razao_ytd": "Execução no ano acima do previsto",
     "previsto_anual": "Meta anual alta (muito % em um ano)",
-    "exec_acum_anterior": "Obra com muito avanço anterior",
+    "exec_acum_anterior": "Obra já avançada em anos anteriores",
     "extensao": "Obra extensa (km)",
     "log_valor": "Obra de alto valor",
     "duracao_meses": "Prazo previsto longo",
@@ -88,19 +88,17 @@ for _cat in CATEGORIAS_TEXTO:
     NOMES[f"motivo_{_cat}"] = ROTULOS[f"motivo_{_cat}"]
 
 
-def rotulo_risco(variavel: str, coeficiente: float) -> str:
-    """Frase que descreve o lado "arriscado" da variável."""
+def rotulo_risco(variavel: str, coeficiente: float) -> str | None:
+    """Frase que descreve o lado "arriscado" da variável (None se não fizer sentido)."""
     if variavel in ROTULOS and coeficiente > 0:
         return ROTULOS[variavel]
     opostos = {"razao_ytd": "Baixa execução no ano até agora",
                "meses_com_meta": "Poucos meses com meta (execução concentrada)",
                "previsto_anual": "Meta anual pequena (obra em fase inicial/final)",
-               "exec_acum_anterior": "Obra já avançada em anos anteriores",
+               "exec_acum_anterior": "Obra no começo (pouco avanço anterior)",
                "extensao": "Obra curta (km)", "log_valor": "Obra de menor valor",
                "duracao_meses": "Prazo previsto curto"}
-    if variavel in opostos:
-        return opostos[variavel]
-    return "Ausência de: " + NOMES.get(variavel, variavel).lower()
+    return opostos.get(variavel)
 
 
 def _pendente(serie: pd.Series) -> pd.Series:

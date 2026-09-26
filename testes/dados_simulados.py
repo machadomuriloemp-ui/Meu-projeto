@@ -54,6 +54,7 @@ OBS_ATRASO = ["Aguardando emissão de licença ambiental pelo IBAMA",
               "Interferência com rede de energia, remanejamento pela distribuidora"]
 ANOS = list(range(2021, 2027))
 ANO_CORRENTE, MES_CORTE = 2026, 6
+HOJE = "2026-07-15"  # data de referência dos testes (os dados simulados são "de julho de 2026")
 
 
 def _p(v: float) -> str:

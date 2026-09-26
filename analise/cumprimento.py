@@ -8,6 +8,9 @@ from scipy import stats
 from . import config
 from .carregar import MESES
 
+TETO_INDICE = 150.0       # executar 3x o previsto num mês não deve dominar a média
+MIN_MESES_TENDENCIA = 6
+
 
 def chave_obra(df: pd.DataFrame) -> pd.Series:
     """Identificador único da obra: concessionária + id SIGICOR (ou item/descrição)."""
@@ -43,17 +46,26 @@ def primeira_versao(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop_duplicates(["obra", "ano"], keep="first").reset_index(drop=True)
 
 
-def meses_fechados(acomp: pd.DataFrame) -> pd.DataFrame:
+def meses_fechados(acomp: pd.DataFrame, hoje: pd.Timestamp | None = None) -> pd.DataFrame:
     """Quantos meses de cada (concessionária, ano) já estão encerrados.
 
-    Anos anteriores ao último ano informado pela concessionária são completos (12).
-    No último ano, considera-se fechado até o último mês com alguma execução
-    registrada (meses futuros vêm zerados e não podem contar como descumprimento).
+    O ano está encerrado (12 meses) quando: já existe um ano posterior da mesma
+    concessionária; ou o relatório foi enviado a partir de março do ano seguinte
+    (o ano de concessão já terminou); ou já se passou mais de um ano inteiro.
+    Nesses casos, meses zerados no fim do ano CONTAM como não execução.
+
+    Só no ano realmente em curso considera-se fechado até o último mês com
+    alguma execução registrada (meses futuros vêm zerados).
     """
+    hoje = pd.Timestamp.today().normalize() if hoje is None else pd.Timestamp(hoje)
     linhas = []
     for (conc, ano), g in acomp.groupby(["concessionaria", "ano"]):
         ultimo_ano = acomp.loc[acomp["concessionaria"] == conc, "ano"].max()
-        if ano < ultimo_ano:
+        relatorio = g["data_planejamento"].max() if "data_planejamento" in g else pd.NaT
+        encerrado = (ano < ultimo_ano
+                     or hoje.year > ano + 1
+                     or (pd.notna(relatorio) and relatorio >= pd.Timestamp(int(ano) + 1, 3, 1)))
+        if encerrado:
             fechados = 12
         else:
             fechados = 0
@@ -108,21 +120,25 @@ def serie_mensal(acomp: pd.DataFrame, fechados: pd.DataFrame) -> pd.DataFrame:
 
 
 def tendencia(serie: pd.DataFrame) -> pd.DataFrame:
-    """Tendência do índice de cumprimento ao longo dos meses, por concessionária."""
+    """Tendência do índice de cumprimento ao longo dos meses, por concessionária.
+
+    Usa a reta de Theil-Sen (mediana das inclinações), que não é arrastada por
+    meses isolados com percentuais extremos, e o teste de Kendall para dizer se
+    a tendência é estatisticamente relevante. O índice é limitado a 150%.
+    """
     linhas = []
     for conc, g in serie.groupby("concessionaria"):
         g = g.dropna(subset=["indice_cumprimento"]).sort_values("t")
-        y = g["indice_cumprimento"].clip(0, 200).to_numpy()
+        y = g["indice_cumprimento"].clip(0, TETO_INDICE).to_numpy()
         x = g["t"].to_numpy(dtype=float)
         linha = {"concessionaria": conc, "meses_com_meta": len(g),
                  "cumprimento_medio": float(np.nanmean(y)) if len(y) else np.nan,
                  "cumprimento_ult_6m": float(np.nanmean(y[-6:])) if len(y) else np.nan,
                  "pct_meses_cumpridos": float(np.mean(y >= config.TOLERANCIA_CUMPRIMENTO * 100) * 100)
                  if len(y) else np.nan}
-        if len(g) >= 4 and np.ptp(x) > 0:
-            reg = stats.linregress(x, y)
-            linha["inclinacao_pp_ano"] = reg.slope * 12
-            linha["p_valor"] = reg.pvalue
+        if len(g) >= MIN_MESES_TENDENCIA and np.ptp(x) > 0 and np.ptp(y) > 0:
+            linha["inclinacao_pp_ano"] = stats.theilslopes(y, x)[0] * 12
+            linha["p_valor"] = stats.kendalltau(x, y).pvalue
         else:
             linha["inclinacao_pp_ano"] = np.nan
             linha["p_valor"] = np.nan

@@ -136,7 +136,13 @@ class ModeloAtraso:
         textos = []
         for linha in contrib:
             ordem = np.argsort(-linha)
-            top = [rotulo_risco(self.variaveis[i], reg.coef_[0][i]) for i in ordem[:3] if linha[i] > 0.1]
+            top = []
+            for i in ordem:
+                if linha[i] <= 0.1 or len(top) == 3:
+                    break
+                frase = rotulo_risco(self.variaveis[i], reg.coef_[0][i])
+                if frase:
+                    top.append(frase)
             textos.append("; ".join(top) if top else "Sem fator de risco destacado")
         return textos
 

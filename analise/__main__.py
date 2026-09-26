@@ -10,7 +10,8 @@ from . import baixar, carregar, config, cumprimento, impacto, modelo, motivos, o
 
 
 def executar(offline: bool = False, pasta_dados: Path | None = None,
-             pasta_saida: Path | None = None) -> dict:
+             pasta_saida: Path | None = None, hoje: str | None = None) -> dict:
+    """hoje: data de referência (padrão: data atual). Usado nos testes."""
     if pasta_dados is not None:
         config.PASTA_DADOS = Path(pasta_dados)
     pasta_saida = Path(pasta_saida) if pasta_saida else config.PASTA_SAIDA
@@ -27,7 +28,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     acomp = cumprimento.ultima_versao(acomp_bruto)
     plan_ult = cumprimento.ultima_versao(plan_bruto)
     plan_orig = cumprimento.primeira_versao(plan_bruto)
-    fechados = cumprimento.meses_fechados(acomp)
+    fechados = cumprimento.meses_fechados(acomp, hoje=hoje)
     serie = cumprimento.serie_mensal(acomp, fechados)
     tend = cumprimento.tendencia(serie) if not serie.empty else pd.DataFrame()
     anual = cumprimento.resumo_anual(acomp, fechados, plan_orig)
