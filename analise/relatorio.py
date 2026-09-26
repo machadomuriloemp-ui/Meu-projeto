@@ -52,6 +52,16 @@ def tabela(df: pd.DataFrame, colunas: dict[str, tuple[str, callable]]) -> str:
 txt = str
 
 
+def _inclinacao(v):
+    if v is None or pd.isna(v):
+        return "–"
+    if v <= -100:
+        return "≤ -100"
+    if v >= 100:
+        return "≥ +100"
+    return num(v, 1)
+
+
 def inteiro(v):
     return "–" if pd.isna(v) else f"{int(v)}"
 
@@ -178,7 +188,7 @@ def gerar(r: dict, pasta: Path) -> Path:
         "cumprimento_ult_6m": ("Últimos 6 meses", pct),
         "pct_meses_cumpridos": ("Meses cumpridos", pct),
         "tendencia": ("Tendência", txt),
-        "inclinacao_pp_ano": ("pp/ano", lambda v: num(v, 1))}))
+        "inclinacao_pp_ano": ("pp/ano", _inclinacao)}))
     if tem_tend:
         md.append("![Tendência](graficos/tendencia.png)\n")
     if not r["anual"].empty:
