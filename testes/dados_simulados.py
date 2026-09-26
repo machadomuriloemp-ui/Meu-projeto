@@ -54,6 +54,11 @@ OBS_ATRASO = ["Aguardando emissão de licença ambiental pelo IBAMA",
               "Interferência com rede de energia, remanejamento pela distribuidora"]
 ANOS = list(range(2021, 2027))
 ANO_CORRENTE, MES_CORTE = 2026, 6
+# Concessionária-ano com investimento declarado e execução física toda zerada
+CASO_SEM_PREENCHIMENTO = ("WAY 262", 2024)
+# Nomes como aparecem na base de investimentos (grafias diferentes das outras bases)
+NOME_NA_BASE_INVESTIMENTOS = {"VIA COSTEIRA": "VIACOSTEIRA", "VIA SUL": "VIA SUL",
+                              "RIOSP": "RIOSP", "WAY 262": "WAY 262"}
 HOJE = "2026-07-15"  # data de referência dos testes (os dados simulados são "de julho de 2026")
 
 
@@ -96,6 +101,9 @@ def gerar(pasta: Path, obras_por_ano: int = 22, semente: int = 7,
                     prev_m[m] = prev_anual * w
                 frac = rng.uniform(0.05, 0.75) if atrasou else rng.uniform(0.93, 1.05)
                 exec_m = {m: max(0.0, prev_m[m] * frac * rng.uniform(0.8, 1.2)) for m in prev_m}
+                if (conc, ano) == CASO_SEM_PREENCHIMENTO:
+                    # Como na base real: investiu no ano, mas não informou execução física
+                    exec_m = {m: 0.0 for m in prev_m}
                 if ano == ANO_CORRENTE:
                     for m in range(MES_CORTE + 1, 13):
                         exec_m[m] = 0.0
@@ -169,6 +177,18 @@ def gerar(pasta: Path, obras_por_ano: int = 22, semente: int = 7,
         (pasta / "cadastro" / "cadastro.csv").write_text("\n".join(cad), encoding="utf-8")
         # Arquivo de inexecução em Windows-1252, como no portal
         (pasta / "inexecucao" / "inexecucao.csv").write_bytes("\n".join(inex).encode("cp1252"))
+        # Base de investimentos: anual, por concessionária, publicada até o ano anterior ao corrente.
+        # RIOSP não declarou investimento no primeiro ano (execução sem investimento).
+        (pasta / "investimentos").mkdir(parents=True, exist_ok=True)
+        linhas = ["concessionaria;ano;Valor"]
+        for conc in CONCESSIONARIAS:
+            for ano in anos:
+                if ano >= ANO_CORRENTE:
+                    continue
+                valor = "" if (conc == "RIOSP" and ano == anos[0]) else str(int(rng.uniform(5e7, 9e8)))
+                linhas.append(f"{NOME_NA_BASE_INVESTIMENTOS[conc]};{ano};{valor}")
+        linhas.append(f"CONCESSIONÁRIA ANTIGA ENCERRADA;{anos[0]};12345000")
+        (pasta / "investimentos" / "investimentos.csv").write_bytes("\n".join(linhas).encode("cp1252"))
     return pasta
 
 

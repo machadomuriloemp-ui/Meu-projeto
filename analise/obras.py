@@ -50,7 +50,8 @@ def mes_corte(fechados: pd.DataFrame) -> int:
 
 def montar(acomp: pd.DataFrame, fechados: pd.DataFrame, fat_plan: pd.DataFrame,
            fat_cad: pd.DataFrame, plan_ultima: pd.DataFrame,
-           acomp_inicial: pd.DataFrame | None = None) -> pd.DataFrame:
+           acomp_inicial: pd.DataFrame | None = None,
+           ultimo_ano_acomp: pd.Series | None = None) -> pd.DataFrame:
     obras = acomp.merge(fechados, on=["concessionaria", "ano"], how="left")
     obras["situacao"] = np.where(obras["meses_fechados"] == 12, "encerrado", "em andamento")
     if acomp_inicial is not None and "data_fim_prevista" in acomp_inicial:
@@ -60,7 +61,8 @@ def montar(acomp: pd.DataFrame, fechados: pd.DataFrame, fat_plan: pd.DataFrame,
 
     # Obras planejadas para anos ainda sem acompanhamento (ex.: ano seguinte)
     if not plan_ultima.empty:
-        ult_acomp = acomp.groupby("concessionaria")["ano"].max()
+        ult_acomp = (ultimo_ano_acomp if ultimo_ano_acomp is not None
+                     else acomp.groupby("concessionaria")["ano"].max())
         fut = plan_ultima.copy()
         fut["obra"] = chave_obra(fut)
         limite = fut["concessionaria"].map(ult_acomp).fillna(-1)

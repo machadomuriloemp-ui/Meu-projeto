@@ -38,6 +38,16 @@ FONTES = {
             "cadastros-de-investimentos-dos-contratos-de-concessao.csv",
         ],
     },
+    "investimentos": {
+        # Valor investido por concessionária e ano (R$), sem detalhe por obra.
+        # Usado para checar se a execução física foi de fato informada.
+        "slug": "investimentos",
+        "obrigatoria": False,
+        "urls": [
+            f"{PORTAL}/dataset/a133da64-1e03-4832-909d-e1eb835eec2e/resource/"
+            "a08292ac-41a6-4220-bfe2-35c7b3abfbf0/download/investimentos.csv",
+        ],
+    },
     "inexecucao": {
         "slug": "inexecucao",
         "obrigatoria": False,

@@ -178,6 +178,20 @@ def gerar(r: dict, pasta: Path) -> Path:
     if tem_risco:
         md.append("![Risco](graficos/risco.png)\n")
 
+    # ---- 1a. Qualidade dos dados
+    q = r.get("qualidade")
+    if q is not None and not q.empty:
+        md.append("### Os dados estão completos? (investimento × execução física)\n")
+        md.append("Quando a concessionária declara investimento no ano mas não informa execução física "
+                  "das obras, o mais provável é falta de preenchimento. Esses anos ficam fora do cálculo "
+                  "de atraso e do modelo. A base de investimentos é anual e por concessionária.\n")
+        al = q[q["nivel"].isin(["alerta", "atencao"])]
+        md.append("\n".join(f"- **{x.concessionaria} · {x.ano}** — {x.explicacao}" for x in al.itertuples())
+                  + "\n" if not al.empty else "_Nenhuma inconsistência encontrada._\n")
+        if r.get("sem_par_investimentos"):
+            md.append("_Sem correspondência na base de investimentos: "
+                      + ", ".join(r["sem_par_investimentos"]) + "._\n")
+
     # ---- 1b. Prova de acerto e próximo ano
     bt = r.get("backtest") or {}
     if bt.get("faixas"):

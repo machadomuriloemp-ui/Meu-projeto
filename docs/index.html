@@ -146,6 +146,15 @@ main { display: grid; gap: 14px; padding: 16px 0 8px; }
 .faixa p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
 .medidor { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 8px 0 0; }
 .medidor span { display: block; height: 100%; border-radius: 99px; }
+.aviso { border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-size: 14px; line-height: 1.5;
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent); }
+.aviso b { font-weight: 650; }
+.alertas { display: grid; gap: 8px; margin: 0 0 12px; }
+.alerta { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: grid; grid-template-columns: 10px 1fr; gap: 10px; }
+.alerta i { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; }
+.alerta p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.alerta .tit { font-weight: 650; font-size: 13px; color: var(--ink-2); margin-bottom: 2px; }
+.contagem { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
 .ficha { border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .ficha .grande { font-size: 40px; font-weight: 700; line-height: 1.05; }
 .ficha .grande small { font-size: 15px; font-weight: 600; color: var(--ink-2); margin-left: 4px; }
@@ -243,9 +252,19 @@ header.topo { position: relative; }
     <section class="card largo" id="card-risco">
       <h2 id="titulo-risco">Quem tende a atrasar</h2>
       <p class="explica" id="explica-risco"></p>
+      <div class="aviso" id="aviso-risco" hidden></div>
       <div class="abas" id="abas-ano" role="group" aria-label="Ano da previsão" hidden></div>
       <div class="legenda" id="legenda-risco"></div>
       <div class="barras" id="barras-risco"></div>
+    </section>
+
+    <section class="card largo" id="card-qualidade" hidden>
+      <h2 id="titulo-qualidade">Os dados estão completos?</h2>
+      <p class="explica" id="explica-qualidade"></p>
+      <div class="contagem" id="contagem-qualidade"></div>
+      <div class="alertas" id="alertas-qualidade"></div>
+      <div class="tabela" id="tabela-qualidade-wrap"><table id="tabela-qualidade"></table></div>
+      <p class="eixo-nota" id="nota-qualidade"></p>
     </section>
 
     <section class="card largo" id="card-prova" hidden>
@@ -465,6 +484,59 @@ header.topo { position: relative; }
         `Cumprimento esperado: ${pct(r.cumprimento_esperado_pct)} (faixa ${esc(r.cumprimento_p10_p90)})<br>` +
         `Obras em risco: ${nf(r.obras_em_risco)} de ${nf(r.obras_no_plano)}`,
     })), { max: 100, onClick: l => selecionar(l.nome) });
+  }
+
+  // ---------- qualidade dos dados ----------
+  const COR_NIVEL = { alerta: "var(--critical)", atencao: "var(--warning)", info: "var(--muted)", ok: "var(--good)" };
+  const reais = v => v == null ? "–" : v >= 1e9 ? `R$ ${nf(v / 1e9, 2)} bi` : v >= 1e6 ? `R$ ${nf(v / 1e6, 1)} mi` : `R$ ${nf(v)}`;
+  function qualidade() {
+    const Q = D.qualidade || [];
+    if (!Q.length) return;
+    $("card-qualidade").hidden = false;
+    const explica = "A ANTT publica a execução física das obras (base de acompanhamento) separada do valor investido por cada concessionária no ano (base de investimentos). " +
+      "Quando a concessionária declara investimento mas não informa execução, o mais provável é <b>falta de preenchimento</b>, não obra parada. " +
+      "Esses anos são <b>retirados automaticamente</b> do cálculo de atraso e do modelo. A base de investimentos é anual e por concessionária, então a checagem é feita ano a ano, não obra a obra.";
+    const alertas = r => r.nivel === "alerta" || r.nivel === "atencao";
+    const item = r => `<div class="alerta"><i style="background:${COR_NIVEL[r.nivel]}"></i><div><p class="tit">${esc(r.concessionaria)} · ${r.ano} — ${esc(r.rotulo)}</p><p>${esc(r.explicacao)}</p></div></div>`;
+    if (sel) {
+      const linhas = Q.filter(r => r.concessionaria === sel);
+      $("titulo-qualidade").textContent = `Os dados da ${sel} estão completos?`;
+      $("explica-qualidade").innerHTML = explica;
+      $("contagem-qualidade").innerHTML = "";
+      const al = linhas.filter(alertas);
+      $("alertas-qualidade").innerHTML = al.length ? al.map(item).join("")
+        : `<p class="vazio">Nenhuma inconsistência encontrada entre investimento e execução da ${esc(sel)}.</p>`;
+      $("tabela-qualidade-wrap").hidden = !linhas.length;
+      $("tabela-qualidade").innerHTML = `<thead><tr><th scope="col">Ano</th><th scope="col">Investido</th><th scope="col">Planejadas</th><th scope="col">Acompanhadas</th><th scope="col">Com execução</th><th scope="col">Situação</th></tr></thead><tbody>` +
+        linhas.map(r => `<tr><td>${r.ano}</td><td class="num">${reais(r.investimento_rs)}</td><td class="num">${nf(r.obras_planejadas)}</td><td class="num">${nf(r.obras_acompanhadas)}</td><td class="num">${nf(r.obras_com_execucao)}</td><td style="text-align:left"><span class="status"><i style="background:${COR_NIVEL[r.nivel]}"></i>${esc(r.rotulo)}${r.excluido_das_metricas ? " · fora do cálculo" : ""}</span></td></tr>`).join("") + "</tbody>";
+      $("nota-qualidade").textContent = "";
+      return;
+    }
+    $("titulo-qualidade").textContent = "Os dados estão completos?";
+    $("explica-qualidade").innerHTML = explica;
+    const fora = Q.filter(r => r.excluido_das_metricas);
+    const atencao = Q.filter(r => r.nivel === "atencao");
+    const ok = Q.filter(r => r.nivel === "ok");
+    $("contagem-qualidade").innerHTML =
+      `<span class="pilula"><span class="status"><i style="background:${COR_NIVEL.alerta}"></i></span>${nf(fora.length)} ano(s) retirados do cálculo</span>` +
+      `<span class="pilula"><span class="status"><i style="background:${COR_NIVEL.atencao}"></i></span>${nf(atencao.length)} com atenção</span>` +
+      `<span class="pilula"><span class="status"><i style="background:${COR_NIVEL.ok}"></i></span>${nf(ok.length)} consistentes</span>`;
+    const al = Q.filter(alertas).sort((a, b) => (b.excluido_das_metricas - a.excluido_das_metricas) || (b.investimento_rs || 0) - (a.investimento_rs || 0));
+    $("alertas-qualidade").innerHTML = al.length ? al.map(item).join("") : `<p class="vazio">Nenhuma inconsistência encontrada.</p>`;
+    $("tabela-qualidade-wrap").hidden = true;
+    const naoPub = Q.filter(r => r.status === "investimento_nao_publicado");
+    const anosNP = [...new Set(naoPub.map(r => r.ano))].join(", ");
+    $("nota-qualidade").innerHTML = (naoPub.length ? `Para ${anosNP}, a ANTT ainda não publicou a base de investimentos; a checagem desses anos acontece automaticamente quando ela sair. ` : "") +
+      ((D.sem_par_investimentos || []).length ? `Nomes da base de investimentos sem correspondência nas demais bases (concessões antigas ou com outro nome): ${esc(D.sem_par_investimentos.join(", "))}. ` : "") +
+      "Selecione uma concessionária para ver ano a ano.";
+  }
+  function avisoRisco() {
+    const el = $("aviso-risco");
+    const fora = (D.qualidade || []).filter(r => r.excluido_das_metricas && (!sel || r.concessionaria === sel));
+    if (!sel || !fora.length) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = `<b>Atenção aos dados:</b> ${fora.map(r => `em ${r.ano}, a ${esc(r.concessionaria)} declarou ${reais(r.investimento_rs)} de investimento sem informar a execução das obras`).join("; ")}. ` +
+      `${fora.length > 1 ? "Esses anos foram retirados" : "Esse ano foi retirado"} do cálculo — veja "Os dados estão completos?" abaixo.`;
   }
 
   // ---------- prova de acerto (teste às cegas) ----------
@@ -708,7 +780,7 @@ header.topo { position: relative; }
     $("sel-conc").value = c; $("limpar").hidden = !c;
     const url = new URL(location); c ? url.searchParams.set("c", c) : url.searchParams.delete("c");
     history.replaceState(null, "", url);
-    kpis(); risco(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
+    kpis(); risco(); avisoRisco(); qualidade(); prova(); heranca(); desenharLinha(); fatores(); tipos(); obras(); impacto();
     if (c) document.querySelector(".kpis").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

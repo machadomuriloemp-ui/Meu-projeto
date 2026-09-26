@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import (baixar, carregar, config, cumprimento, dashboard, impacto, modelo, motivos, obras,
-               relatorio)
+               qualidade, relatorio)
 
 
 def executar(offline: bool = False, pasta_dados: Path | None = None,
@@ -34,6 +34,17 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     plan_ult = cumprimento.ultima_versao(plan_bruto)
     plan_orig = cumprimento.primeira_versao(plan_bruto)
     fechados = cumprimento.meses_fechados(acomp, hoje=hoje)
+    ultimo_ano_acomp = acomp.groupby("concessionaria")["ano"].max()
+
+    # Consistência entre bases: anos com investimento declarado e execução física
+    # não informada saem das métricas (provável falta de preenchimento).
+    qual, sem_par_invest = qualidade.checar(acomp, plan_ult, bases.get("investimentos", pd.DataFrame()),
+                                            hoje=hoje)
+    pares_fora = qualidade.pares_excluidos(qual)
+    if pares_fora:
+        print(f"  {len(pares_fora)} concessionária-ano retirados por inconsistência entre as bases")
+    acomp = qualidade.remover_pares(acomp, pares_fora)
+
     serie = cumprimento.serie_mensal(acomp, fechados)
     tend = cumprimento.tendencia(serie) if not serie.empty else pd.DataFrame()
     anual = cumprimento.resumo_anual(acomp, fechados, plan_orig)
@@ -45,7 +56,8 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
     fat_plan = motivos.fatores_planejamento(plan_disponivel)
     fat_cad = motivos.fatores_cadastro(bases.get("cadastro", pd.DataFrame()))
     acomp_inicial = cumprimento.primeira_versao(acomp_bruto)
-    tabela = obras.montar(acomp, fechados, fat_plan, fat_cad, plan_ult, acomp_inicial)
+    tabela = obras.montar(acomp, fechados, fat_plan, fat_cad, plan_ult, acomp_inicial,
+                          ultimo_ano_acomp=ultimo_ano_acomp)
     lista_fatores = [v for v in modelo.VARIAVEIS if v in tabela]
     binarios = [v for v in lista_fatores if v.startswith(("pend_", "motivo_", "herdada"))]
     # Variáveis contínuas viram "presente" quando acima de um limiar interpretável
@@ -93,6 +105,7 @@ def executar(offline: bool = False, pasta_dados: Path | None = None,
         "importancia": m.importancia(), "metricas": m.metricas, "previsoes": previsoes,
         "risco": risco, "impacto": imp, "impacto_ano": imp_ano, "inexecucao": inex,
         "obras": tabela, "info_dados": info, "risco_proximo": risco_proximo, "backtest": backtest,
+        "qualidade": qual, "sem_par_investimentos": sem_par_invest,
     }
     destino = relatorio.gerar(resultado, pasta_saida)
     print(f"Relatório: {destino}")

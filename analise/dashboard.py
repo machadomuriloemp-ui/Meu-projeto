@@ -188,6 +188,11 @@ def exportar(r: dict, destino: Path) -> Path:
         "tipos": _linhas(r["motivos_tipo"].head(12) if not r["motivos_tipo"].empty else r["motivos_tipo"],
                          ["tipo", "obras", "taxa_atraso_pct"]),
         "por_concessionaria": _resumo_concessionarias(obras),
+        "qualidade": _linhas(r.get("qualidade"), [
+            "concessionaria", "ano", "status", "rotulo", "nivel", "excluido_das_metricas",
+            "investimento_rs", "obras_planejadas", "obras_acompanhadas", "obras_com_execucao",
+            "explicacao"]),
+        "sem_par_investimentos": list(r.get("sem_par_investimentos") or []),
         "fatores_por_concessionaria": _agrupar(r.get("fatores_conc"), [
             "fator", "obras_atrasadas_com_fator", "pct_das_atrasadas", "taxa_atraso_com_fator_pct",
             "obras_com_fator"]),

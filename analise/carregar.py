@@ -148,6 +148,7 @@ ALIASES = {
     "fator_d": ["fator_d"],
     "tipo_planejamento": ["investimento_tipo_planejamento"],
     "valor_contratual": ["valor_contratual"],
+    "investimento_rs": ["valor"],
     "data_base_valor": ["data_base_valor_contratual"],
 }
 for _m in MESES:
@@ -157,7 +158,7 @@ for _m in MESES:
 COLS_PCT = ["exec_acum_anterior", "previsto_anual", "executado_anual", "executado_total",
             "inexecucao", "fator_d"] + [f"prev_{m}" for m in MESES] + [f"exec_{m}" for m in MESES]
 COLS_NUM = ["id_sigicor", "ano", "versao", "km_inicial", "km_final", "extensao",
-            "valor_contratual", "ano_inicio", "ano_fim"]
+            "valor_contratual", "investimento_rs", "ano_inicio", "ano_fim"]
 COLS_DATA = ["data_planejamento", "data_inicio_prevista", "data_fim_prevista"]
 COLS_TEXTO = ["concessionaria", "origem_per", "item_per", "descricao", "rodovia", "tipo",
               "projeto_executivo", "licenciamento_ambiental", "desapropriacao",
